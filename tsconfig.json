@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "baseUrl": "./assets/ts/",
+    "paths": {
+      "*": ["*"]
+    },
+    "strict": true,
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "allowJs": true
+  },
+  "include": ["assets/ts/**/*"]
+}

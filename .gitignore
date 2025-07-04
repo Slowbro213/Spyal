@@ -1,0 +1,59 @@
+# Go build output
+/bin/
+/build/
+/dist/
+*.exe
+*.test
+*.out
+*.log
+
+# Go modules cache (optional if vendoring)
+vendor/
+
+# Bun output
+assets/out/
+*.bun.js
+*.bun.map
+
+# TypeScript
+*.tsbuildinfo
+
+# Node/Bun dependency folders
+node_modules/
+bun.lockb
+package-lock.json # optional — keep if you want reproducible builds
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor & OS files
+.DS_Store
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+*.coverprofile
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace
+
+# Git hooks or tools
+.husky/
+lefthook-local.yml
+
+# Optional: compiled templates or cached assets
+*.tmplc
+*.cache
+
+# OS specific
+Thumbs.db

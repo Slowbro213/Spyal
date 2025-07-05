@@ -23,10 +23,13 @@ pre-commit:
       run: cd frontend && bunx htmlhint "views/**/*.html"
 
     frontend-prettier:
-      run: cd frontend && bunx prettier --check "src/**/*.{ts,css,html,json,md}"
+      run: cd frontend && bunx prettier --check .
 
     frontend-bun-test:
       run: cd frontend && bun test
+
+    docker-lint:
+      run: hadolint Dockerfile
 
 pre-push:
   parallel: false

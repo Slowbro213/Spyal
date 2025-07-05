@@ -6,14 +6,14 @@ WORKDIR /app/backend
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/server ./cmd/server
 
 # ─── Frontend Stage ──────────────────────────────────────────────
-FROM oven/bun AS bun
+FROM oven/bun:canary AS bun
 WORKDIR /frontend
 COPY frontend/package.json ./package.json
 COPY frontend/bun.lock ./bun.lock
 COPY frontend/public ./public
 COPY frontend/src ./src
 COPY frontend/views ./views
-RUN bun i -p && bun run build
+RUN bun i -p && bun i tailwindcss @tailwindcss/cli && bun run build
 
 # ─── Final Stage ─────────────────────────────────────────────────
 FROM scratch

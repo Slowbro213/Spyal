@@ -74,6 +74,29 @@ jobs:
         working-directory: frontend
         run: bun audit
 
+
+  DevEnv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+    
+      - name: Lint Dockerfile
+        run: curl -sSL https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint && chmod +x /usr/local/bin/hadolint && hadolint Dockerfile
+    
+      - name: Markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            README.md
+    
+      - name: Lint Makefile
+        run: |
+          sudo apt install -y checkmake
+          checkmake Makefile
+    
+      - name: ShellCheck (Make recipes)
+        run: shellcheck -s sh <(awk '/^[\t]/' Makefile)
+
   commitlint:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest

@@ -22,7 +22,8 @@
         <span class="text-3xl">🕵️</span>
         <span class="text-2xl font-bold text-emerald-400">Spyfall AL</span>
       </a>
-      <button id="menu-toggle" type="button" class="md:hidden text-3xl text-gray-300 hover:text-emerald-400 focus:outline-none">
+      <button id="menu-toggle" type="button"
+        class="md:hidden text-3xl text-gray-300 hover:text-emerald-400 focus:outline-none">
         ☰
       </button>
       <div id="menu" class="hidden md:flex md:items-center md:space-x-6">
@@ -30,16 +31,26 @@
         <a href="#si-luhet" class="hover:text-emerald-400 transition-colors">Si luhet?</a>
         <a href="#kontakt" class="hover:text-emerald-400 transition-colors">Kontakt</a>
       </div>
+
       <div id="mobile-menu"
-        class="hidden mobile-menu flex-col space-y-4 p-6 absolute top-16 left-0 w-full bg-[var(--background-dark)]/95 backdrop-blur-lg border-t border-[var(--border-accent)]/50 shadow-lg md:hidden z-50">
+        class="hidden md:hidden absolute top-16 left-0 w-full z-50 bg-[var(--background-dark)]/90 backdrop-blur-lg border-t border-[var(--border-accent)]/30 shadow-2xl px-6 py-5 flex flex-col space-y-4 rounded-b-2xl transition-all duration-300">
+
         <a href="#veçoritë"
-          class="text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200 text-lg font-semibold py-2 rounded-lg hover:bg-[var(--primary-teal-dark)]/20">Veçoritë</a>
+          class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200">
+          Veçoritë
+        </a>
+
         <a href="#si-luhet"
-          class="text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200 text-lg font-semibold py-2 rounded-lg hover:bg-[var(--primary-teal-dark)]/20">Si
-          luhet?</a>
+          class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200">
+          Si luhet?
+        </a>
+
         <a href="#kontakt"
-          class="text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200 text-lg font-semibold py-2 rounded-lg hover:bg-[var(--primary-teal-dark)]/20">Kontakt</a>
+          class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200">
+          Kontakt
+        </a>
       </div>
+
     </nav>
   </header>
 

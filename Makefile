@@ -9,6 +9,7 @@ lint:
 	cd frontend && bunx stylelint "public/**/*.css"
 	cd frontend && bunx htmlhint "views/**/*.html"
 	cd frontend && bunx prettier --check .
+	hadolint Dockerfile
 
 # Format frontend files
 format:

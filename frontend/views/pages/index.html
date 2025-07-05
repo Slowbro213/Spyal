@@ -26,7 +26,8 @@ end }} {{ define "content" }}
 <section id="lojërat" class="container mx-auto px-4">
   <h2 class="text-center mb-8">Lojërat Aktive</h2>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {{ template "components/room.html" .Room }}
+    {{ template "components/room.html" .Room }} {{ template
+    "components/room.html" .Room }} {{ template "components/room.html" .Room }}
   </div>
 </section>
 

@@ -25,9 +25,11 @@ func main() {
 		env = "development"
 	}
 
-	err := godotenv.Load(".env." + env)
-	if err != nil {
-		log.Fatalf("❌ Error loading .env.%s: %v", env, err)
+	if env != "production" {
+		err := godotenv.Load(".env." + env)
+		if err != nil {
+			log.Fatalf("❌ Error loading .env.%s: %v", env, err)
+		}
 	}
 
 	port := os.Getenv("PORT")
@@ -65,7 +67,7 @@ func main() {
 	// Healthcheck
 	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_ , err := w.Write([]byte("ok"))
+		_, err := w.Write([]byte("ok"))
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}

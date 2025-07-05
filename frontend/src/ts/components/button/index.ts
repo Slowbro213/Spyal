@@ -1,0 +1,1 @@
+export { initButton } from './button';

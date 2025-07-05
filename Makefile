@@ -5,37 +5,43 @@
 # 🔍 Lint all source files
 lint:
 	cd backend && golangci-lint run ./...
-	cd frontend && bunx eslint . --ext .ts
+	cd frontend && bunx eslint "src/**/*.ts" --max-warnings=0
 	cd frontend && bunx stylelint "public/**/*.css"
 	cd frontend && bunx htmlhint "views/**/*.html"
-	cd frontend && bunx prettier --check "src/**/*.{ts,css,html,json,md}"
+	cd frontend && bunx prettier --check .
 
 # Format frontend files
 format:
-	bunx --cwd frontend prettier --write "src/**/*.{ts,css,html,json,md}"
+	cd frontend && bunx prettier --write . --ignore-path .gitignore
 
-# Run Go and frontend tests
+# 🔬 Run all tests
 test:
-	cd backend && go test ./...
-	cd frontend && bun test
+	cd backend && go test ./... -v -cover -race -shuffle=on
+	cd frontend && bun test --coverage
 
-# Full backend check
+# 🔐 Run security scans
+secure:
+	cd backend && gosec ./...
+	cd frontend && bun audit
+
+# ✅ Full backend check (fmt, vet, lint, test)
 check:
 	cd backend && go fmt ./...
 	cd backend && go vet ./...
 	cd backend && golangci-lint run ./...
-	cd backend && go test ./... -cover
+	cd backend && go test ./... -v -cover -race -shuffle=on
 
-# Build frontend
+# 🏗️ Build frontend
 build:
 	cd frontend && bun run build
 
-# Run backend dev server
+# 🚀 Run backend dev server
 dev:
 	cd backend/cmd/server && go run main.go
 
-# Lefthook
+# 🪝 Run Lefthook manually
 precommit:
 	lefthook run pre-commit
+
 prepush:
 	lefthook run pre-push

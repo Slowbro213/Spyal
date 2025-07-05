@@ -1,93 +1,85 @@
-<!doctype html>
-<html lang="sq">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Spyfall në shqip — një lojë me deduktim dhe mister për miq dhe familje."
-    />
-    <title>Spyfall Shqip</title>
-    <link rel="stylesheet" href="/public/css/homepage.css" />
-  </head>
+{{ define "title" }}Spyfall Shqip - Loja Më Argëtuese e Fshehjes dhe Zbulimit{{
+end }} {{ define "content" }}
+<section class="hero">
+  <div class="container mx-auto px-4 text-center">
+    <span class="hero-emoji">🕵️</span>
+    <h1 class="hero-text mt-4">Spyfall Shqip</h1>
+    <p
+      class="hero-text mt-4 text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto"
+    >
+      Një lojë deduktimi dhe mashtrimi ku 5-10 lojtarë përpiqen të zbulojnë
+      spiunin... ose të fshihen nëse janë spiun!
+    </p>
+    <div
+      class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6"
+    >
+      <a href="/create" class="btn-primary">
+        <span class="mr-2">🎮</span> Krijo Lojë
+      </a>
+      <a href="/join" class="btn-secondary">
+        <span class="mr-2">🤝</span> Bashkohu
+      </a>
+    </div>
+  </div>
+</section>
 
-  <body>
-    <main>
-      <div class="container">
-        <div class="header">
-          <div class="logo">🕵️</div>
-          <h1>Spyfall Shqip</h1>
-          <p class="subtitle">
-            Një lojë deduktimi dhe mashtrimi. Zbuloni spiunin… ose jini ju ai!
-          </p>
-        </div>
+<section id="lojërat" class="container mx-auto px-4">
+  <h2 class="text-center mb-8">Lojërat Aktive</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {{ template "components/room.html" .Room }}
+  </div>
+</section>
 
-        <div
-          id="component/room"
-          data-roomid="ABC123"
-          data-playername="Thanas Papa"
-        >
-          Loading room...
-        </div>
+<section id="veçoritë" class="container mx-auto px-4">
+  <h2 class="text-center mb-12">Pse të luash Spyfall?</h2>
+  <p class="text-center text-lg text-gray-300 mb-8">
+    Një eksperiencë unike sociale dhe strategjike
+  </p>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="feature-card">
+      <span class="text-4xl text-emerald-400">🔍</span>
+      <h3 class="mt-4">Testoni Vëzhgimin</h3>
+      <p class="mt-2 text-gray-300">
+        Përdorni pyetje të zgjuara dhe vëzhgimin tuaj për të zbuluar spiunin
+        midis grupit.
+      </p>
+    </div>
+    <div class="feature-card">
+      <span class="text-4xl text-violet-400">🎭</span>
+      <h3 class="mt-4">Zhvilloni Maskën</h3>
+      <p class="mt-2 text-gray-300">
+        Nëse jeni spiuni, duhet të bëni shumë pyetje pa u zbuluar.
+      </p>
+    </div>
+    <div class="feature-card">
+      <span class="text-4xl text-amber-400">⏱️</span>
+      <h3 class="mt-4">Kohë e Kufizuar</h3>
+      <p class="mt-2 text-gray-300">
+        Vetëm 8 minuta për të zbuluar spiunin - presioni është pjesë e lojës!
+      </p>
+    </div>
+  </div>
+</section>
 
-        <div class="btn-group">
-          <button
-            type="button"
-            class="btn btn-primary"
-            onclick="location.href='/create'"
-          >
-            <span class="btn-icon">➕</span>
-            <span>Krijo Dhomë</span>
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            onclick="location.href='/join'"
-          >
-            <span class="btn-icon">👥</span>
-            <span>Bashkohu</span>
-          </button>
-          <button
-            type="button"
-            class="btn btn-tertiary"
-            onclick="location.href='/rreth-lojës'"
-          >
-            <span class="btn-icon">❔</span>
-            <span>Rreth Lojës</span>
-          </button>
-        </div>
-
-        <div class="features">
-          <div class="feature-card">
-            <div class="feature-icon">🔍</div>
-            <h3>Zbuloni</h3>
-            <p>Përdorni pyetje të zgjuara për të zbuluar spiunin</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🎭</div>
-            <h3>Mashtroni</h3>
-            <p>Spiuni duhet të bëjë shumë pyetje pa u zbuluar</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">⏱️</div>
-            <h3>Kohë e Kufizuar</h3>
-            <p>8 minuta për të zbuluar spiunin</p>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <footer>
-      <div class="footer-content">
-        <p>Made with ❤️ në Shqipëri — © 2025</p>
-        <div class="social-links">
-          <a href="#" aria-label="Facebook">📘</a>
-          <a href="#" aria-label="Twitter">🐦</a>
-          <a href="#" aria-label="Instagram">📷</a>
-        </div>
-      </div>
-    </footer>
-
-    <script type="module" src="/public/out/main.js"></script>
-  </body>
-</html>
+<section id="si-luhet" class="container mx-auto px-4">
+  <h2 class="text-center mb-12">Si të luhet?</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="feature-card">
+      <h3 class="mb-4">Për Lojtarët</h3>
+      <ol class="list-decimal list-inside space-y-2 text-gray-300">
+        <li>Secili merr një vendndodhje të fshehtë (përveç spiunit)</li>
+        <li>Bëni pyetje për të kuptuar se kush nuk e di vendndodhjen</li>
+        <li>Votoni për spiunin para se të skadojë koha</li>
+      </ol>
+    </div>
+    <div class="feature-card">
+      <h3 class="mb-4">Për Spiunin</h3>
+      <ol class="list-decimal list-inside space-y-2 text-gray-300">
+        <li>Nuk e dini vendndodhjen - duhet të gjeni</li>
+        <li>Bëni pyetje që të mos dukeni i dyshimtë</li>
+        <li>Përpiquni të merrni mend vendndodhjen ose të shpëtoni</li>
+      </ol>
+    </div>
+  </div>
+</section>
+{{ end }}

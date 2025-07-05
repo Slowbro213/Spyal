@@ -14,7 +14,7 @@ pre-commit:
       run: cd frontend && bun audit
 
     frontend-eslint:
-      run: cd frontend && bunx eslint . --ext .ts
+      run: cd frontend && bunx eslint "src/**/*.ts" --max-warnings=0
 
     frontend-stylelint:
       run: cd frontend && bunx stylelint "public/**/*.css"
@@ -38,7 +38,7 @@ pre-push:
       run: cd backend && go test ./... -v -cover
 
     frontend-eslint:
-      run: cd frontend && bunx eslint . --ext .ts
+      run: cd frontend && bunx eslint "src/**/*.ts" --max-warnings=0
 
     frontend-stylelint:
       run: cd frontend && bunx stylelint "public/**/*.css"

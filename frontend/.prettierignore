@@ -1,3 +1,4 @@
 node_modules
 dist
+views/layouts/*.html
 *.min.js

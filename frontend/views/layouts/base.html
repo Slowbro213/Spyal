@@ -1,0 +1,90 @@
+{{ define "base" }}
+<!DOCTYPE html>
+<html lang="sq">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Spyfall Shqip - Loja më argëtuese e fshehjes dhe zbulimit për shokë dhe familje!">
+  <meta name="keywords" content="Spyfall, lojë, deduktim, mashtim, Shqipëri, argëtim">
+  <meta name="author" content="Spyfall AL">
+  <title>{{ block "title" . }}Spyfall Shqip{{ end }}</title>
+  <link rel="stylesheet" href="public/out/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="flex flex-col min-h-screen">
+  <header>
+    <nav class="flex items-center justify-between px-4 py-4 md:px-8">
+      <a href="/" class="flex items-center space-x-2">
+        <span class="text-3xl">🕵️</span>
+        <span class="text-2xl font-bold text-emerald-400">Spyfall AL</span>
+      </a>
+      <button id="menu-toggle" type="button" class="md:hidden text-3xl text-gray-300 hover:text-emerald-400 focus:outline-none">
+        ☰
+      </button>
+      <div id="menu" class="hidden md:flex md:items-center md:space-x-6">
+        <a href="#veçoritë" class="hover:text-emerald-400 transition-colors">Veçoritë</a>
+        <a href="#si-luhet" class="hover:text-emerald-400 transition-colors">Si luhet?</a>
+        <a href="#kontakt" class="hover:text-emerald-400 transition-colors">Kontakt</a>
+      </div>
+      <div id="mobile-menu"
+        class="hidden mobile-menu flex-col space-y-4 p-6 absolute top-16 left-0 w-full bg-[var(--background-dark)]/95 backdrop-blur-lg border-t border-[var(--border-accent)]/50 shadow-lg md:hidden z-50">
+        <a href="#veçoritë"
+          class="text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200 text-lg font-semibold py-2 rounded-lg hover:bg-[var(--primary-teal-dark)]/20">Veçoritë</a>
+        <a href="#si-luhet"
+          class="text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200 text-lg font-semibold py-2 rounded-lg hover:bg-[var(--primary-teal-dark)]/20">Si
+          luhet?</a>
+        <a href="#kontakt"
+          class="text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200 text-lg font-semibold py-2 rounded-lg hover:bg-[var(--primary-teal-dark)]/20">Kontakt</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-grow">
+    {{ block "content" . }}{{ end }}
+  </main>
+
+  <footer class="mt-auto bg-gray-900">
+    <div class="container mx-auto px-4 py-12">
+      <div class="flex flex-col items-center space-y-6">
+        <div class="flex space-x-8">
+          <a href="https://facebook.com" class="social-icon hover:text-[var(--primary-teal)]" aria-label="Facebook">
+            <i class="fab fa-facebook-f text-2xl"></i>
+          </a>
+          <a href="https://twitter.com" class="social-icon hover:text-[var(--secondary-coral)]" aria-label="Twitter">
+            <i class="fab fa-twitter text-2xl"></i>
+          </a>
+          <a href="https://instagram.com" class="social-icon hover:text-[var(--accent-violet)]" aria-label="Instagram">
+            <i class="fab fa-instagram text-2xl"></i>
+          </a>
+        </div>
+        <div class="w-24 h-px bg-gradient-to-r from-[var(--primary-teal)] to-[var(--secondary-coral)]"></div>
+        <p class="text-sm text-[var(--text-secondary)] font-semibold">
+          Krijuar me <span class="text-[var(--secondary-coral)] animate-pulse">♥</span> në Shqipëri — © 2025 Spyfall AL
+        </p>
+        <p class="text-xs text-[var(--text-secondary)]">Të gjitha të drejtat e rezervuara • Versioni 2.0</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuToggle.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+    // Close mobile menu when clicking a link
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+      });
+    });
+  </script>
+  <script type="module" src="public/out/main.js"></script>
+</body>
+
+</html>
+{{ end }}

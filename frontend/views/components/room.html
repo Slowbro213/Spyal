@@ -1,2 +1,23 @@
-<h2>Room: {{.RoomID}}</h2>
-<p>Player: {{.PlayerName}}</p>
+{{ define "components/room.html" }}
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h3 class="text-xl font-semibold text-white">Dhoma: {{.roomid}}</h3>
+    <span class="bg-green-500 text-xs text-white px-2 py-1 rounded-full"
+      >Aktive</span
+    >
+  </div>
+
+  <div class="flex items-center space-x-3">
+    <div
+      class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white"
+    >
+      {{.playercount}}
+    </div>
+    <span class="text-gray-300">{{.playername}} dhe të tjerë</span>
+  </div>
+
+  <a href="/join/{{.roomid}}" class="btn-secondary w-full text-center">
+    Bashkohu
+  </a>
+</div>
+{{ end }}

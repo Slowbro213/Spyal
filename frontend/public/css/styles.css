@@ -1,0 +1,231 @@
+@import 'tailwindcss';
+
+/* Cohesive color palette */
+:root {
+  --primary-teal: #14b8a6; /* Slightly deeper than before */
+  --primary-teal-dark: #0f766e;
+  --secondary-coral: #fb7185; /* Bright coral pink */
+  --secondary-coral-dark: #be123c;
+  --accent-violet: #8b5cf6; /* Softer, more accessible */
+  --accent-violet-dark: #6d28d9;
+  --background-dark: #18181b; /* Deep gray instead of blue-purple */
+  --background-gradient: linear-gradient(135deg, #18181b, #1e293b);
+  --card-bg: rgb(24 24 27 / 50%);
+  --text-primary: #f9fafb; /* Light gray */
+  --text-secondary: #cbd5e1; /* Softer than #d1d5db */
+  --link-primary: blue;
+  --border-accent: #5eead4;
+
+  /* Optional feedback colors */
+  --success: #22c55e;
+  --warning: #facc15;
+  --error: #ef4444;
+}
+
+/* Global reset and base styles */
+* {
+  @apply box-border;
+}
+
+body {
+  @apply bg-[var(--background-dark)] text-[var(--text-primary)] font-sans min-h-screen;
+
+  background: var(--background-gradient);
+}
+
+/* Primary button - teal with vibrant hover */
+.btn-primary {
+  @apply font-bold px-6 py-3 rounded-xl text-lg transition-all duration-300 shadow-md flex items-center justify-center relative overflow-hidden;
+
+  background: linear-gradient(45deg, var(--primary-teal), var(--border-accent));
+  color: var(--text-primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-teal-dark);
+  box-shadow: 0 0 10px rgb(20 184 166 / 80%);
+}
+
+/* Secondary button - coral with vibrant hover */
+.btn-secondary {
+  @apply font-bold px-6 py-3 rounded-xl text-lg transition-all duration-300 shadow-md flex items-center justify-center relative overflow-hidden;
+
+  background: linear-gradient(45deg, var(--primary-teal), var(--border-accent));
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-coral-dark);
+  box-shadow: 0 0 10px rgb(251 113 133 / 80%);
+}
+
+/* Feature cards - semi-transparent with teal borders */
+.feature-card {
+  @apply p-8 rounded-2xl border-2 transition-all duration-300 backdrop-blur-md;
+
+  background: var(--card-bg);
+  border-color: var(--border-accent);
+}
+
+.room-card {
+  @apply p-6 rounded-xl border-2 transition-all duration-300;
+
+  background: var(--card-bg);
+  border-color: var(--border-accent);
+}
+
+.feature-card:hover,
+.room-card:hover {
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 20px rgb(94 234 212 / 40%);
+}
+
+/* Social icons - vibrant violet */
+.social-icon {
+  @apply text-3xl transition-all duration-300;
+
+  color: var(--primary-teal-dark);
+}
+
+.social-icon:hover {
+  @apply scale-125;
+
+  color: var(--accent-violet-dark);
+}
+
+/* Typography - cohesive and playful */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-bold tracking-tight;
+}
+
+h1 {
+  @apply text-5xl md:text-6xl;
+
+  color: transparent;
+  background: linear-gradient(
+    to right,
+    var(--primary-teal),
+    var(--accent-violet)
+  );
+  background-clip: text;
+}
+
+h2 {
+  @apply text-3xl md:text-4xl;
+
+  color: var(--primary-teal-dark);
+}
+
+h3 {
+  @apply text-2xl md:text-3xl;
+
+  color: var(--primary-teal);
+}
+
+/* Section containers - consistent spacing */
+section {
+  @apply py-16 px-4 md:px-8;
+}
+
+/* Hero section - vibrant gradient */
+.hero {
+  background: linear-gradient(to bottom, rgb(24 24 27 / 90%), transparent);
+}
+
+/* Navigation - sleek with violet accents */
+nav {
+  @apply bg-[var(--background-dark)] backdrop-blur-md sticky top-0 z-50 shadow-md;
+}
+
+nav a {
+  @apply text-[var(--text-secondary)] hover:text-[var(--primary-teal)] transition-colors duration-200;
+}
+
+/* Footer - cohesive with the palette */
+footer {
+  @apply bg-[var(--background-dark)] text-[var(--text-secondary)] py-12 text-center;
+}
+
+/* Game room cards - vibrant and interactive */
+
+/* Color replacements for feature cards */
+.feature-card .text-green-400 {
+  @apply text-[var(--primary-teal)];
+}
+
+.feature-card .text-purple-400 {
+  @apply text-[var(--accent-violet)];
+}
+
+.feature-card .text-yellow-400 {
+  @apply text-[var(--secondary-coral)];
+}
+
+/* Hero emoji animation */
+.hero-emoji {
+  @apply text-6xl md:text-8xl animate-[bounce_1.5s_ease-in-out_infinite];
+}
+
+/* Smooth scroll behavior */
+html {
+  @apply scroll-smooth;
+}
+
+/* Mobile menu - consistent with palette */
+.mobile-menu {
+  @apply bg-[var(--background-dark)] backdrop-blur-md;
+}
+
+/* Fade-in animation for hero text */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide-in animation for mobile menu */
+@keyframes slide-in {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.mobile-menu:not(.hidden) {
+  animation: slide-n 0.3s ease-out forwards;
+}
+
+.hero-text {
+  @apply animate-[fade-in-up_0.8s_ease-out];
+}
+
+/* Playful pulse animation for cards */
+@keyframes card-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

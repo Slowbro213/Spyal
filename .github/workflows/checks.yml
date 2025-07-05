@@ -61,7 +61,7 @@ jobs:
           bunx eslint "src/**/*.ts" --max-warnings=0
           bunx stylelint "public/**/*.css"
           bunx htmlhint "views/**/*.html"
-          bunx prettier --check . --ignore-path .gitignore
+          bunx prettier --check .
       
       - name: Run tests
         working-directory: frontend

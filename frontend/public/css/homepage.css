@@ -1,14 +1,14 @@
-/* homepage.css */
+/* Fixed homepage.css */
 :root {
-  --primary: #00C9A7;
-  --primary-dark: #00A58E;
-  --secondary: #845EC2;
-  --tertiary: #FF8066;
-  --dark: #1E1E2E;
+  --primary: #00c9a7;
+  --primary-dark: #00a58e;
+  --secondary: #845ec2;
+  --tertiary: #ff8066;
+  --dark: #1e1e2e;
   --darker: #161621;
-  --light: #F5F5F5;
-  --lighter: #FFFFFF;
-  --gray: #8A8A9D;
+  --light: #f5f5f5;
+  --lighter: #fff;
+  --gray: #8a8a9d;
 }
 
 * {
@@ -19,7 +19,7 @@
 
 body {
   margin: 0;
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: Poppins, system-ui, sans-serif;
   background: linear-gradient(135deg, var(--darker), var(--dark));
   color: var(--light);
   display: flex;
@@ -41,7 +41,7 @@ body {
 
 .header {
   margin-bottom: 3rem;
-  animation: fadeIn 0.8s ease-out;
+  animation: fade-in 0.8s ease-out;
 }
 
 .logo {
@@ -53,10 +53,6 @@ body {
 h1 {
   font-size: 3rem;
   margin-bottom: 0.5rem;
-  background: linear-gradient(to right, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
   font-weight: 700;
 }
 
@@ -86,12 +82,12 @@ h1 {
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
 }
 
 .btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 12px rgb(0 0 0 / 15%);
 }
 
 .btn:active {
@@ -113,7 +109,7 @@ h1 {
 }
 
 .btn-secondary:hover {
-  background-color: #6F4DA0;
+  background-color: #6f4da0;
 }
 
 .btn-tertiary {
@@ -123,7 +119,7 @@ h1 {
 }
 
 .btn-tertiary:hover {
-  background-color: rgba(138, 138, 157, 0.1);
+  background-color: rgb(138 138 157 / 10%);
 }
 
 .btn-icon {
@@ -138,9 +134,7 @@ h1 {
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-radius: 1rem;
+  background: rgb(255 255 255 / 5%);
   padding: 2rem;
   transition: transform 0.3s ease;
 }
@@ -195,30 +189,43 @@ footer {
   color: var(--primary);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
-@media (max-width: 768px) {
+@media (width <=768px) {
   h1 {
     font-size: 2.2rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
-  
+
   .btn {
     padding: 0.8rem 1.5rem;
     font-size: 0.9rem;
   }
-  
+
   .features {
     grid-template-columns: 1fr;
   }

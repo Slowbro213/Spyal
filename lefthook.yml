@@ -1,0 +1,63 @@
+pre-commit:
+  parallel: true
+  commands:
+    go-lint:
+      run: cd backend && golangci-lint run ./...
+
+    go-test:
+      run: cd backend && go test ./...
+
+    go-secure:
+      run: cd backend && gosec ./...
+
+    frontend-secure:
+      run: cd frontend && bun audit
+
+    frontend-eslint:
+      run: cd frontend && bunx eslint . --ext .ts
+
+    frontend-stylelint:
+      run: cd frontend && bunx stylelint "public/**/*.css"
+
+    frontend-htmlhint:
+      run: cd frontend && bunx htmlhint "views/**/*.html"
+
+    frontend-prettier:
+      run: cd frontend && bunx prettier --check "src/**/*.{ts,css,html,json,md}"
+
+    frontend-bun-test:
+      run: cd frontend && bun test
+
+pre-push:
+  parallel: false
+  commands:
+    go-lint:
+      run: cd backend && golangci-lint run ./...
+
+    go-test:
+      run: cd backend && go test ./... -v -cover
+
+    frontend-eslint:
+      run: cd frontend && bunx eslint . --ext .ts
+
+    frontend-stylelint:
+      run: cd frontend && bunx stylelint "public/**/*.css"
+
+    frontend-htmlhint:
+      run: cd frontend && bunx htmlhint "views/**/*.html"
+
+    frontend-prettier:
+      run: cd frontend && bunx prettier --check "src/**/*.{ts,css,html,json,md}"
+
+    frontend-bun-test:
+      run: cd frontend && bun test
+
+    check-todos:
+      run: grep -iR "TODO" ./ | grep -v node_modules || true
+      skip:
+        - all: false
+
+commit-msg:
+  commands:
+    lint-message:
+      run: bunx commitlint --edit {1}

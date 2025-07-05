@@ -5,14 +5,14 @@ components.forEach((el) => {
   const componentPath = el.id; // e.g., "component/room"
 
   fetch(`/${componentPath}`) // becomes "/component/room"
-    .then(res => {
+    .then((res) => {
       if (!res.ok) throw new Error(`Failed to fetch ${componentPath}`);
       return res.text();
     })
-    .then(html => {
+    .then((html) => {
       el.outerHTML = html;
     })
-    .catch(err => {
+    .catch((err) => {
       el.textContent = `❌ Error loading ${componentPath}`;
       console.error(err);
     });

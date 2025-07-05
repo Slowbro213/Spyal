@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.4'
+          cache: true
+      
+      - name: Install linter
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.1.6
+      
+      - name: Lint Go
+        working-directory: backend
+        run: golangci-lint run ./...
+      
+      - name: Run tests
+        working-directory: backend
+        run: go test ./... -v -cover -race -shuffle=on
+
+      - name: Install GoSec
+        run: curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.22.5      
+      - name: Security scan
+        working-directory: backend
+        run: gosec ./...
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.bun/install/cache
+            frontend/node_modules
+          key: bun-${{ hashFiles('frontend/bun.lock') }}
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: bun install --frozen-lockfile
+      
+      - name: Lint code
+        working-directory: frontend
+        run: |
+          bunx eslint "src/**/*.ts" --max-warnings=0
+          bunx stylelint "public/**/*.css"
+          bunx htmlhint "views/**/*.html"
+          bunx prettier --check . --ignore-path .gitignore
+      
+      - name: Run tests
+        working-directory: frontend
+        run: bun test --coverage
+      
+      - name: Security audit
+        working-directory: frontend
+        run: bun audit
+
+  commitlint:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for commit history
+      
+      - uses: oven-sh/setup-bun@v1
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Check commit message
+        run: |
+          echo "${{ github.event.head_commit.message }}" > .git/COMMIT_EDITMSG
+          bunx commitlint --edit .git/COMMIT_EDITMSG

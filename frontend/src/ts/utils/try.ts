@@ -1,5 +1,3 @@
-
-
 export const test = (): string => {
-  return "Hello";
-}
+  return 'Hello';
+};

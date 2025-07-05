@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"spyal/handlers"
 	"spyal/renderer"
 
 	"github.com/joho/godotenv"
@@ -18,8 +19,7 @@ const (
 	IdleTimeout  = 120 * time.Second
 )
 
-func main() {
-	// ─── Load Environment ──────────────────────────────────────
+func loadEnv() {
 	env := os.Getenv("ENV")
 	if env == "" {
 		env = "development"
@@ -31,6 +31,11 @@ func main() {
 			log.Fatalf("❌ Error loading .env.%s: %v", env, err)
 		}
 	}
+}
+
+func main() {
+	// ─── Load Environment ──────────────────────────────────────
+	loadEnv()
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -39,23 +44,21 @@ func main() {
 
 	publicDir := os.Getenv("PUBLIC_DIR")
 	viewsDir := os.Getenv("VIEWS_DIR")
-	// pagesDir := os.Getenv("PAGES_DIR")
 
 	logger := log.New(os.Stdout, "INFO ", log.LstdFlags)
 	rh := renderer.NewRenderHandler(logger, viewsDir)
+	logger = log.New(os.Stdout, "GAMEHANDLER ", log.LstdFlags)
+	gh := handlers.NewGameHandler(logger,viewsDir)
 
 	// ─── Set Up Router ─────────────────────────────────────────
 	mux := http.NewServeMux()
 
-	// Static files: /public/*
 	mux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir(publicDir))))
 
-	// Pages: /
 	mux.HandleFunc("/", rh.RenderPage)
+	mux.HandleFunc("/create", gh.CreateGame)
 
-	// Components: /views/*
 	mux.Handle("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))))
-
 	// Render dynamic components: /components/*
 	mux.HandleFunc("/components/", rh.RenderComponent)
 

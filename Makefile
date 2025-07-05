@@ -41,6 +41,13 @@ build:
 dev:
 	cd backend/cmd/server && go run main.go
 
+# 🐳 Build Docker image
+docker-build:
+	docker build -t alspy .
+
+# 🐳 Run Docker container with env file
+docker-run:
+	docker run --env-file .env.production -p 8080:8080 alspy
 # 🪝 Run Lefthook manually
 precommit:
 	lefthook run pre-commit

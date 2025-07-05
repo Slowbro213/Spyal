@@ -31,6 +31,9 @@ pre-commit:
     docker-lint:
       run: hadolint Dockerfile
 
+    markdown-lint:
+      run: bunx markdownlint-cli2 README.md
+
 pre-push:
   parallel: false
   commands:

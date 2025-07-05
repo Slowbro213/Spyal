@@ -10,6 +10,7 @@ lint:
 	cd frontend && bunx htmlhint "views/**/*.html"
 	cd frontend && bunx prettier --check .
 	hadolint Dockerfile
+	bunx markdownlint-cli2 README.md
 
 # Format frontend files
 format:

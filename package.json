@@ -4,7 +4,8 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "markdownlint-cli2": "^0.18.1"
   },
   "peerDependencies": {
     "typescript": "^5"

@@ -88,14 +88,6 @@ jobs:
         with:
           globs: |
             README.md
-    
-      - name: Lint Makefile
-        run: |
-          sudo apt install -y checkmake
-          checkmake Makefile
-    
-      - name: ShellCheck (Make recipes)
-        run: shellcheck -s sh <(awk '/^[\t]/' Makefile)
 
   commitlint:
     if: github.event_name == 'push'

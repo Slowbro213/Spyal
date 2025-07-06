@@ -15,22 +15,15 @@
     <meta name="author" content="Spyfall AL" />
     <title>{{ block "title" . }}Spyfall Shqip{{ end }}</title>
     <link rel="stylesheet" href="public/out/styles.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
   </head>
 
   <body class="flex flex-col min-h-screen">
     <header>
       <nav class="flex items-center justify-between px-4 py-4 md:px-8">
-        <a href="/" class="flex items-center space-x-2">
+        <smart-link href="/" class="flex items-center space-x-2">
           <span class="text-3xl">🕵️</span>
           <span class="text-2xl font-bold text-emerald-400">Spyfall AL</span>
-        </a>
+        </smart-link>
         <button
           id="menu-toggle"
           type="button"
@@ -68,7 +61,7 @@
       </nav>
     </header>
 
-    <main class="flex-grow">{{ block "content" . }}{{ end }}</main>
+    <main id="content" class="flex-grow">{{ block "content" . }}{{ end }}</main>
 
     <footer class="mt-auto bg-gray-900">
       <div class="container mx-auto px-4 py-12">
@@ -124,7 +117,7 @@
         });
       });
     </script>
-    <script type="module" src="public/out/main.js"></script>
+    <script type="module" src="public/out/main.js" defer></script>
   </body>
 </html>
 {{ end }}

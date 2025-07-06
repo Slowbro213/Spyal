@@ -19,7 +19,7 @@ func NewRenderHandler(l *log.Logger, vd string) *RenderHandler {
 	}
 }
 
-func (rh *RenderHandler) RenderPage(w http.ResponseWriter, _ *http.Request) {
+func (rh *RenderHandler) RenderPage(w http.ResponseWriter, r *http.Request) {
 	props := map[string]any{
 		"title": "Spyfall Shqip",
 		"Room": map[string]any{
@@ -34,8 +34,19 @@ func (rh *RenderHandler) RenderPage(w http.ResponseWriter, _ *http.Request) {
 		},
 	}
 
+	isFragment := r.Header.Get("X-Smart-Link") == "true"
+
+	var layout string
+
+	if isFragment {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		layout = filepath.Join(rh.viewsDir, "layouts", "empty.html")
+	} else {
+		layout = filepath.Join(rh.viewsDir, "layouts", "base.html")
+	}
+
 	tmpl, err := template.ParseFiles(
-		filepath.Join(rh.viewsDir, "layouts", "base.html"),
+		layout,
 		filepath.Join(rh.viewsDir, "pages", "index.html"),
 		filepath.Join(rh.viewsDir, "components", "button.html"),
 		filepath.Join(rh.viewsDir, "components", "room.html"),

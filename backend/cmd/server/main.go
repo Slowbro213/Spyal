@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"spyal/handlers"
+	"spyal/middleware"
 	"spyal/renderer"
 
 	"github.com/joho/godotenv"
@@ -53,7 +54,7 @@ func main() {
 	// ─── Set Up Router ─────────────────────────────────────────
 	mux := http.NewServeMux()
 
-	mux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir(publicDir))))
+	mux.Handle("/public/", http.StripPrefix("/public/", middleware.BrotliStatic(publicDir)))
 
 	mux.HandleFunc("/", rh.RenderPage)
 	mux.HandleFunc("/create", gh.CreateGame)
@@ -78,10 +79,10 @@ func main() {
 
 	// ─── Start Server ──────────────────────────────────────────
 	logger.Printf("✅ Server running at http://localhost:%s", port)
-
+	wrapped := middleware.MinifyGzipMiddleware(mux)
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + port,
-		Handler:      mux,
+		Handler:      wrapped,
 		ReadTimeout:  ReadTimeout,
 		WriteTimeout: WriteTimeout,
 		IdleTimeout:  IdleTimeout,

@@ -34,11 +34,23 @@ func NewGameHandler(l *log.Logger, vd string) *GameHandler {
 	}
 }
 
-func (gh *GameHandler) CreateGame(w http.ResponseWriter, _ *http.Request) {
-	tmpl, err := template.ParseFiles(
-		filepath.Join(gh.viewsDir, "layouts", "base.html"),
-		filepath.Join(gh.viewsDir, "pages", "create.html"),
-	)
+func (gh *GameHandler) CreateGame(w http.ResponseWriter, r *http.Request) {
+	isFragment := r.Header.Get("X-Smart-Link") == "true"
+
+	var tmpl *template.Template
+	var err error
+	if isFragment {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		tmpl, err = template.ParseFiles(
+			filepath.Join(gh.viewsDir, "layouts", "empty.html"),
+			filepath.Join(gh.viewsDir, "pages", "create.html"),
+		)
+	} else {
+		tmpl, err = template.ParseFiles(
+			filepath.Join(gh.viewsDir, "layouts", "base.html"),
+			filepath.Join(gh.viewsDir, "pages", "create.html"),
+		)
+	}
 	if err != nil {
 		gh.l.Printf("Error parsing create templates: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

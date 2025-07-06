@@ -2,7 +2,7 @@
   "name": "alspy",
   "version": "1.0.0",
   "description": "A minimalist Albanian-language Spyfall game built with Go, TypeScript, and Bun.",
-  "author": "Segeraldo Doci",
+  "author": "Thanas Papa",
   "license": "MIT",
   "private": true,
   "type": "module",

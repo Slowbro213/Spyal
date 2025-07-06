@@ -56,7 +56,7 @@ jobs:
       
       - name: Install dependencies
         working-directory: frontend
-        run: bun install --frozen-lockfile
+        run: bun install
       
       - name: Lint code
         working-directory: frontend

@@ -49,15 +49,23 @@ func main() {
 	logger := log.New(os.Stdout, "INFO ", log.LstdFlags)
 	rh := renderer.NewRenderHandler(logger, viewsDir)
 	logger = log.New(os.Stdout, "GAMEHANDLER ", log.LstdFlags)
-	gh := handlers.NewGameHandler(logger,viewsDir)
+	gh := handlers.NewGameHandler(logger, viewsDir)
 
 	// ─── Set Up Router ─────────────────────────────────────────
 	mux := http.NewServeMux()
 
 	mux.Handle("/public/", http.StripPrefix("/public/", middleware.BrotliStatic(publicDir)))
 
-	mux.HandleFunc("/", rh.RenderPage)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		// Handle root page
+		rh.RenderPage(w, r)
+	})
 	mux.HandleFunc("/create", gh.CreateGame)
+	mux.HandleFunc("/create/remote", gh.CreateRemoteGame)
 
 	mux.Handle("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))))
 	// Render dynamic components: /components/*

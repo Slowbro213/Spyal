@@ -13,12 +13,12 @@ end }} {{ define "content" }}
     <div
       class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6"
     >
-      <smart-link href="/create" class="btn-primary">
+      <smart-link prefetch="load" href="/create" class="btn-primary">
         <span class="mr-2">🎮</span> Krijo Lojë
       </smart-link>
-      <a href="/join" class="btn-secondary">
+      <smart-link prefetch="load" href="/join" class="btn-secondary">
         <span class="mr-2">🤝</span> Bashkohu
-      </a>
+      </smart-link>
     </div>
   </div>
 </section>

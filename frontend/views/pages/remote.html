@@ -1,0 +1,206 @@
+{{ define "title" }}Spyfall Shqip - Krijo Lojë Online{{ end }} {{ define
+"content" }}
+<section class="hero">
+  <div class="container mx-auto px-4 text-center">
+    <span class="hero-emoji">🌐</span>
+    <h1 class="hero-text mt-4 min-h-20">Krijo Lojë Online</h1>
+    <p
+      class="hero-text mt-4 text-xl md:text-2xl max-w-2xl mx-auto"
+      style="color: var(--text-secondary)"
+    >
+      Konfiguroni një lojë Spyfall online dhe ftoni miqtë tuaj të bashkohen nga
+      kudo!
+    </p>
+  </div>
+</section>
+
+<section id="krijo-online" class="container mx-auto px-4 py-16">
+  <h2 class="text-center mb-12">Konfiguroni Lojën Tuaj</h2>
+  <div class="feature-card mx-auto max-w-2xl">
+    <smart-form
+      id="create-online-form"
+      action="/create/remote/submit"
+      method="POST"
+    >
+      <form>
+        <div class="space-y-6">
+          <!-- Player Nickname -->
+          <div>
+            <label
+              for="player-nickname"
+              class="block text-lg font-semibold mb-2"
+              style="color: var(--text-primary)"
+            >
+              Emri juaj
+            </label>
+            <input
+              type="text"
+              id="player-nickname"
+              name="player-nickname"
+              class="w-full px-4 py-3 rounded-xl border border-[var(--border-accent)] focus:border-[var(--primary-teal)] focus:outline-none transition-colors duration-200"
+              style="background: var(--card-bg); color: var(--text-primary)"
+              placeholder="p.sh. Thanas"
+              required
+              maxlength="25"
+            />
+          </div>
+
+          <!-- Game Name (optional) -->
+          <div>
+            <label
+              for="game-name"
+              class="block text-lg font-semibold mb-2"
+              style="color: var(--text-primary)"
+            >
+              Emri i Lojës
+              <span style="color: var(--text-secondary)" class="font-normal"
+                >(opsionale)</span
+              >
+            </label>
+            <input
+              type="text"
+              id="game-name"
+              name="game-name"
+              class="w-full px-4 py-3 rounded-xl border border-[var(--border-accent)] focus:border-[var(--primary-teal)] focus:outline-none transition-colors duration-200"
+              style="background: var(--card-bg); color: var(--text-primary)"
+              placeholder="p.sh. Dhoma e Thanasit (lihet bosh për emër automatik)"
+              maxlength="50"
+            />
+          </div>
+
+          <!-- Game Duration -->
+          <div>
+            <label
+              for="game-duration"
+              class="block text-lg font-semibold mb-2"
+              style="color: var(--text-primary)"
+            >
+              Sa gjatë dëshironi të zgjasë loja?
+            </label>
+            <select
+              id="game-duration"
+              name="game-duration"
+              class="w-full pl-4 py-3 rounded-xl border border-r-8 border-transparent outline outline-[var(--border-accent)] focus:outline-[var(--primary-teal)] transition-colors duration-200"
+              style="background: var(--card-bg); color: var(--text-primary)"
+            >
+              <option value="5">5 Minuta</option>
+              <option value="8" selected>8 Minuta</option>
+              <option value="10">10 Minuta</option>
+              <option value="15">15 Minuta</option>
+            </select>
+          </div>
+
+          <!-- Max Players -->
+          <div>
+            <label
+              for="max-players"
+              class="block text-lg font-semibold mb-2"
+              style="color: var(--text-primary)"
+            >
+              Numri i Lojtarëve
+              <span
+                style="color: var(--text-secondary)"
+                class="font-normal"
+                title="Sa më shumë, aq më i vështirë për spiunin!"
+                >?</span
+              >
+            </label>
+            <select
+              id="max-players"
+              name="max-players"
+              class="w-full pl-4 py-3 rounded-xl border border-r-8 border-transparent outline outline-[var(--border-accent)] focus:outline-[var(--primary-teal)] transition-colors duration-200"
+              style="background: var(--card-bg); color: var(--text-primary)"
+              required
+            >
+              <option value="5">5 Lojtarë</option>
+              <option value="6">6 Lojtarë</option>
+              <option value="7">7 Lojtarë</option>
+              <option value="8">8 Lojtarë</option>
+              <option value="9">9 Lojtarë</option>
+              <option value="10">10 Lojtarë</option>
+            </select>
+          </div>
+
+          <!-- Public/Private Option -->
+          <div>
+            <label
+              class="block text-lg font-semibold mb-2"
+              style="color: var(--text-primary)"
+            >
+              Lloji i Lojës
+            </label>
+            <div class="flex flex-col gap-4 sm:flex-row sm:gap-8">
+              <!-- Private Option -->
+              <label
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border-accent)] cursor-pointer w-full sm:w-auto"
+                style="background: var(--card-bg)"
+              >
+                <input
+                  type="radio"
+                  name="game-visibility"
+                  value="private"
+                  checked
+                  class="accent-[var(--primary-teal)] w-6 h-6"
+                />
+                <div>
+                  <span class="font-medium" style="color: var(--text-primary)"
+                    >Private</span
+                  >
+                  <div class="text-sm" style="color: var(--text-secondary)">
+                    Vetëm me kod
+                  </div>
+                </div>
+              </label>
+              <!-- Public Option -->
+              <label
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border-accent)] cursor-pointer w-full sm:w-auto"
+                style="background: var(--card-bg)"
+              >
+                <input
+                  type="radio"
+                  name="game-visibility"
+                  value="public"
+                  class="accent-[var(--primary-teal)] w-6 h-6"
+                />
+                <div>
+                  <span class="font-medium" style="color: var(--text-primary)"
+                    >Publike</span
+                  >
+                  <div class="text-sm" style="color: var(--text-secondary)">
+                    Kushdo mund të bashkohet
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-8">
+            <button
+              type="submit"
+              class="btn-primary w-full flex justify-center items-center"
+            >
+              <span class="mr-2">📡</span> Krijo Lojën dhe Merr Kodin!
+            </button>
+          </div>
+        </div>
+      </form>
+    </smart-form>
+  </div>
+</section>
+
+<section class="container mx-auto px-4 py-12 text-center">
+  <p class="text-lg max-w-3xl mx-auto" style="color: var(--text-secondary)">
+    Pasi të krijoni lojën, do të merrni një kod unik për të ndarë me miqtë tuaj.
+    Bashkohuni së bashku dhe zbuloni kush është spiuni!
+  </p>
+  <div class="mt-8">
+    <smart-link
+      href="/create"
+      class="text-[var(--primary-teal)] hover:text-[var(--primary-teal-dark)] transition-colors duration-200"
+    >
+      ← Kthehu te Zgjidhja e Llojit të Lojës
+    </smart-link>
+  </div>
+</section>
+{{ end }}

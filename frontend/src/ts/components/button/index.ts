@@ -1,1 +1,0 @@
-export { initButton } from './button';

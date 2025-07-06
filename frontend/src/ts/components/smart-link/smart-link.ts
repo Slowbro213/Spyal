@@ -1,6 +1,7 @@
-import { pageCache } from '../../pageCache';
+import { fetchPage, loadPage } from '../../spa';
 
 export class SmartLink extends HTMLElement {
+  fetched = false;
   constructor() {
     super();
     this.attachShadow({ mode: 'open' }).innerHTML = `
@@ -13,6 +14,14 @@ export class SmartLink extends HTMLElement {
       </style>
       <slot></slot>
     `;
+    const prefetchOption = this.getAttribute('prefetch')?.toLowerCase();
+
+    const fetchOnLoad = prefetchOption === 'load';
+
+    const location = this.getAttribute('href');
+    if (fetchOnLoad && location) {
+      fetchPage(location);
+    }
   }
 
   connectedCallback() {
@@ -21,31 +30,10 @@ export class SmartLink extends HTMLElement {
 
   async handleClick(e: MouseEvent) {
     e.preventDefault();
-    const href = this.getAttribute('href');
-    if (!href) return;
-
-    const target = document.querySelector('#content');
-    if (!target) return;
-
-    if (pageCache.has(href)) {
-      target.innerHTML = pageCache.get(href)!;
-      history.pushState(null, '', href);
-      return;
-    }
-
-    try {
-      const res = await fetch(href, {
-        headers: { 'X-Smart-Link': 'true' },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch ${href}`);
-      const html = await res.text();
-
-      pageCache.set(href, html);
-      target.innerHTML = html;
-      history.pushState(null, '', href);
-    } catch (err) {
-      console.error('SmartLink fetch failed:', err);
-    }
+    const location = this.getAttribute('href');
+    if (!location) return;
+    if (!this.fetched) await fetchPage(location);
+    loadPage(location);
   }
 }
 

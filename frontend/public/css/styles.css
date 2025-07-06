@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Cohesive color palette */
+/* Cohesive color palette (DARK DEFAULT) */
 :root {
   --primary-teal: #14b8a6; /* Slightly deeper than before */
   --primary-teal-dark: #0f766e;
@@ -152,8 +152,6 @@ footer {
 }
 
 /* Game room cards - vibrant and interactive */
-
-/* Color replacements for feature cards */
 .feature-card .text-green-400 {
   @apply text-[var(--primary-teal)];
 }
@@ -208,7 +206,7 @@ html {
 }
 
 .mobile-menu:not(.hidden) {
-  animation: slide-n 0.3s ease-out forwards;
+  animation: slide-in 0.3s ease-out forwards;
 }
 
 .hero-text {
@@ -228,4 +226,71 @@ html {
   100% {
     transform: scale(1);
   }
+}
+
+/* ---------------------- LIGHT MODE SUPPORT ---------------------- */
+
+/* 1. Auto-detect system light mode with media query */
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary-teal: #0d9488;
+    --primary-teal-dark: #14b8a6;
+    --secondary-coral: #fb7185;
+    --secondary-coral-dark: #be123c;
+    --accent-violet: #8b5cf6;
+    --accent-violet-dark: #7c3aed;
+    --background-dark: #f8fafc;
+    --background-gradient: linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%);
+    --card-bg: rgb(255 255 255 / 85%);
+    --text-primary: #18181b;
+    --text-secondary: #334155;
+    --link-primary: #2563eb;
+    --border-accent: #5eead4;
+    --success: #22c55e;
+    --warning: #facc15;
+    --error: #ef4444;
+  }
+
+  nav,
+  footer,
+  .mobile-menu {
+    background: var(--background-dark) !important;
+    color: var(--text-secondary);
+  }
+
+  .feature-card,
+  .room-card {
+    background: var(--card-bg);
+    color: var(--text-primary);
+  }
+
+  h1 {
+    color: transparent;
+    background: linear-gradient(
+      to right,
+      var(--primary-teal),
+      var(--accent-violet)
+    );
+    background-clip: text;
+  }
+}
+
+html.light :root,
+:root.light {
+  --primary-teal: #0d9488;
+  --primary-teal-dark: #14b8a6;
+  --secondary-coral: #fb7185;
+  --secondary-coral-dark: #be123c;
+  --accent-violet: #8b5cf6;
+  --accent-violet-dark: #7c3aed;
+  --background-dark: #f8fafc;
+  --background-gradient: linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%);
+  --card-bg: rgb(255 255 255 / 85%);
+  --text-primary: #18181b;
+  --text-secondary: #334155;
+  --link-primary: #2563eb;
+  --border-accent: #5eead4;
+  --success: #22c55e;
+  --warning: #facc15;
+  --error: #ef4444;
 }

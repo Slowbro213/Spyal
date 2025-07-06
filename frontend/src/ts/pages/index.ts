@@ -1,7 +1,7 @@
-import { pageRemoteInit } from './remote';
+// import { pageRemoteInit } from './remote';
 
 const pageInits: Record<string, () => void> = {
-  '/create/remote': pageRemoteInit,
+  //'/create/remote': pageRemoteInit,
 };
 
 export const onPageChange = () => {

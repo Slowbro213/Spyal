@@ -13,6 +13,7 @@ COPY frontend/bun.lock ./bun.lock
 COPY frontend/public ./public
 COPY frontend/src ./src
 COPY frontend/views ./views
+COPY frontend/scripts ./scripts
 RUN bun i -p && bun i tailwindcss @tailwindcss/cli && bun run build
 
 # ─── Final Stage ─────────────────────────────────────────────────

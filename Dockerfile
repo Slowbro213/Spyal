@@ -10,6 +10,7 @@ FROM oven/bun:canary AS bun
 WORKDIR /frontend
 COPY frontend/package.json ./package.json
 COPY frontend/bun.lock ./bun.lock
+COPY frontend/tsconfig.json ./tsconfig.json
 COPY frontend/public ./public
 COPY frontend/src ./src
 COPY frontend/views ./views

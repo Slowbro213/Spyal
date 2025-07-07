@@ -1,11 +1,11 @@
-// import { pageRemoteInit } from './remote';
+import { pageRemoteInit } from './remote';
 
 const pageInits: Record<string, () => void> = {
-  //'/create/remote': pageRemoteInit,
+  '/create/remote': pageRemoteInit,
 };
 
-export const onPageChange = () => {
+export const onPageChange = async () => {
   const location: string = window.location.pathname;
-  console.log(location);
+  if (!pageInits[location]) console.log('No code for this yet');
   pageInits[location]?.();
 };

@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -55,6 +56,12 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 func (gh *GameHandler) renderTemplate(w http.ResponseWriter, layout, page string, isFragment bool, props map[string]any) {
 	var tmpl *template.Template
 	var err error
+
+	stage := os.Getenv("STAGE")
+	if stage == "" {
+		stage = "development" // fallback default.
+	}
+	props["Stage"] = stage
 
 	layoutName := layout
 	if isFragment {

@@ -1,4 +1,4 @@
-import { fetchPage, loadPage } from '../../spa';
+import { fetchPage, loadPage } from '@alspy/spa';
 
 export class SmartLink extends HTMLElement {
   fetched = false;

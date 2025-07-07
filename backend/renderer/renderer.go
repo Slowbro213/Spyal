@@ -3,6 +3,7 @@ package renderer
 import (
 	"html/template"
 	"log"
+	"os"
 	"net/http"
 	"path/filepath"
 )
@@ -42,6 +43,11 @@ func (rh *RenderHandler) RenderPage(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		layout = filepath.Join(rh.viewsDir, "layouts", "empty.html")
 	} else {
+		stage := os.Getenv("STAGE")
+		if stage == "" {
+			stage = "development" // fallback default.
+		}
+		props["Stage"] = stage
 		layout = filepath.Join(rh.viewsDir, "layouts", "base.html")
 	}
 

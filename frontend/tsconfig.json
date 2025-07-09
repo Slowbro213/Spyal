@@ -6,7 +6,8 @@
     "paths": {
       "@alspy/*": ["src/ts/*"],
       "@public/*": ["public/*"],
-      "@root/*": ["./*"]
+      "@root/*": ["./*"],
+      "@utils/*": ["src/ts/utils/*"]
     },
     "strict": true,
     "jsx": "preserve",

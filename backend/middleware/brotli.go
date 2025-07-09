@@ -15,9 +15,16 @@ func BrotliStatic(dir string) http.Handler {
 			return
 		}
 
+		safeDir := os.Getenv("PUBLIC_DIR")
 		// Check if client accepts Brotli
 		if strings.Contains(r.Header.Get("Accept-Encoding"), "br") {
 			brPath := filepath.Join(dir, r.URL.Path) + ".br"
+
+			if !strings.HasPrefix(brPath, safeDir) {
+				http.Error(w, "Invalid file name", http.StatusBadRequest)
+				return
+			}
+
 			if _, err := os.Stat(brPath); err == nil {
 				w.Header().Set("Content-Encoding", "br")
 				w.Header().Set("Content-Type", detectMimeType(r.URL.Path))
@@ -26,8 +33,13 @@ func BrotliStatic(dir string) http.Handler {
 			}
 		}
 
-		// Fallback to normal file
 		path := filepath.Join(dir, r.URL.Path)
+
+		if !strings.HasPrefix(path, safeDir) {
+			http.Error(w, "Invalid file name", http.StatusBadRequest)
+			return
+		}
+
 		if _, err := os.Stat(path); err == nil {
 			http.ServeFile(w, r, path)
 		} else {

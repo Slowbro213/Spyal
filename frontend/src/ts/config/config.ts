@@ -1,5 +1,11 @@
-type ConfigKey = 'API_URL';
+import { Staging } from './types';
 
-export const Config: Record<ConfigKey, string> = {
-  API_URL: 'http:localhost:8080',
+type ConfigShape = {
+  API_URL: string;
+  STAGE: Staging;
+};
+
+export const Config: ConfigShape = {
+  API_URL: 'http://localhost:8080',
+  STAGE: window.STAGE as Staging,
 };

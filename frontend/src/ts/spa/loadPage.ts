@@ -1,12 +1,12 @@
 import { pageCache } from './pageCache';
 import { target } from './config';
-import { serveError } from './error';
+import { serveErrorPage } from './error';
 import { onPageChange } from '@alspy/pages';
 export const loadPage = async (href: string) => {
   try {
     const html = pageCache.get(href);
     if (target === null || !html) {
-      await serveError('huge');
+      await serveErrorPage('huge');
       return;
     }
     target.innerHTML = html;
@@ -14,6 +14,6 @@ export const loadPage = async (href: string) => {
     onPageChange();
   } catch (err) {
     console.error('SmartLink fetch failed:', err);
-    serveError('catastrofic');
+    serveErrorPage('catastrofic');
   }
 };

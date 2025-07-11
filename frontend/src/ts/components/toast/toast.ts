@@ -220,8 +220,9 @@ export class Toast extends HTMLElement {
       </div>
     `;
 
-    this.shadowRoot!.innerHTML = '';
-    this.shadowRoot!.appendChild(container);
+    if (this.shadowRoot === null) return;
+    this.shadowRoot.innerHTML = '';
+    this.shadowRoot.appendChild(container);
 
     container.querySelector('.toast')?.addEventListener('click', () => {
       this.close();
@@ -264,7 +265,8 @@ export class Toast extends HTMLElement {
   }
 
   close() {
-    this.shadowRoot!.innerHTML = '';
+    if (this.shadowRoot === null) return;
+    this.shadowRoot.innerHTML = '';
   }
 }
 

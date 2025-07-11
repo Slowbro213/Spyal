@@ -1,0 +1,8 @@
+scrape_configs:
+  - job_name: alspy
+    basic_auth:
+      username: Thanas
+      password: Thanas24
+    static_configs:
+      - targets:
+          - localhost:9100

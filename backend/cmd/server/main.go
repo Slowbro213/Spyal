@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,9 +10,12 @@ import (
 
 	"spyal/handlers"
 	"spyal/middleware"
+	"spyal/pkg/utils/logger"
+	"spyal/pkg/utils/metrics"
 	"spyal/renderer"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -42,7 +46,14 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+	myLogger, err := logger.NewLogger()
+	if err != nil {
+		return
+	}
+	metrics := metrics.New()
 
+	// Log startup
+	myLogger.Info("Starting server on :8080")
 	publicDir := os.Getenv("PUBLIC_DIR")
 	viewsDir := os.Getenv("VIEWS_DIR")
 
@@ -77,17 +88,17 @@ func main() {
 	})
 
 	// Healthcheck
-	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("ok"))
-		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprint(w, "ok")
 	})
+
+	// Metrics endpoint
+	mux.Handle("/metrics", middleware.UsernamePassword("Thanas","Thanas24", promhttp.Handler(), *myLogger))
 
 	// ─── Start Server ──────────────────────────────────────────
 	logger.Printf("✅ Server running at http://localhost:%s", port)
 	wrapped := middleware.MinifyGzipMiddleware(mux)
+	wrapped = middleware.TrackMetrics(metrics,wrapped)
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + port,
 		Handler:      wrapped,

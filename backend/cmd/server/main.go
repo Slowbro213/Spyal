@@ -16,6 +16,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
 )
 
 const (
@@ -29,40 +30,32 @@ func loadEnv() {
 	if env == "" {
 		env = "development"
 	}
-
 	if env != "production" {
-		err := godotenv.Load(".env." + env)
-		if err != nil {
+		if err := godotenv.Load(".env." + env); err != nil {
 			log.Fatalf("❌ Error loading .env.%s: %v", env, err)
 		}
 	}
 }
 
-func main() {
-	// ─── Load Environment ──────────────────────────────────────
-	loadEnv()
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+func initLoggerAndMetrics() (*zap.Logger, *metrics.Metrics) {
 	myLogger, err := logger.NewLogger()
 	if err != nil {
-		return
+		log.Fatalf("Error loading logger: %v", err)
 	}
 	metrics := metrics.New()
+	return myLogger, metrics
+}
 
-	// Log startup
-	myLogger.Info("Starting server on :8080")
+func setupRouter(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 	publicDir := os.Getenv("PUBLIC_DIR")
 	viewsDir := os.Getenv("VIEWS_DIR")
+	username := os.Getenv("USERNAME")
+	password := os.Getenv("PASSWORD")
 
-	logger := log.New(os.Stdout, "INFO ", log.LstdFlags)
-	rh := renderer.NewRenderHandler(logger, viewsDir)
-	logger = log.New(os.Stdout, "GAMEHANDLER ", log.LstdFlags)
-	gh := handlers.NewGameHandler(logger, viewsDir)
+	rh := renderer.NewRenderHandler(myLogger, viewsDir)
+	gh := handlers.NewGameHandler(myLogger, viewsDir)
+	lh := handlers.NewLogHandler(myLogger)
 
-	// ─── Set Up Router ─────────────────────────────────────────
 	mux := http.NewServeMux()
 
 	mux.Handle("/public/", http.StripPrefix("/public/", middleware.BrotliStatic(publicDir)))
@@ -72,40 +65,57 @@ func main() {
 			http.NotFound(w, r)
 			return
 		}
-		// Handle root page
 		rh.RenderPage(w, r)
 	})
+
 	mux.HandleFunc("/create", gh.CreateGame)
 	mux.HandleFunc("/create/remote", gh.CreateRemoteGame)
 
 	mux.Handle("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))))
-	// Render dynamic components: /components/*
-	mux.HandleFunc("/components/", rh.RenderComponent)
 
-	// Favicon
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(publicDir, "favicon.ico"))
 	})
 
-	// Healthcheck
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
 
-	// Metrics endpoint
-	mux.Handle("/metrics", middleware.UsernamePassword("Thanas","Thanas24", promhttp.Handler(), *myLogger))
+	mux.Handle("/metrics", middleware.UsernamePassword(username, password, promhttp.Handler(), *myLogger))
 
-	// ─── Start Server ──────────────────────────────────────────
-	logger.Printf("✅ Server running at http://localhost:%s", port)
-	wrapped := middleware.MinifyGzipMiddleware(mux)
-	wrapped = middleware.TrackMetrics(metrics,wrapped)
+	mux.HandleFunc("/api/log", lh.LogFrontend)
+
+	handler := middleware.MinifyGzipMiddleware(mux)
+	handler = middleware.TrackMetrics(metrics, handler)
+	handler = middleware.RateLimitMiddleware(handler)
+
+	return handler
+}
+
+func startServer(handler http.Handler) {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + port,
-		Handler:      wrapped,
+		Handler:      handler,
 		ReadTimeout:  ReadTimeout,
 		WriteTimeout: WriteTimeout,
 		IdleTimeout:  IdleTimeout,
 	}
 
+	log.Printf("✅ Server running at http://localhost:%s\n", port)
 	log.Fatal(srv.ListenAndServe())
+}
+
+func main() {
+	loadEnv()
+
+	myLogger, metrics := initLoggerAndMetrics()
+
+	handler := setupRouter(myLogger, metrics)
+
+	startServer(handler)
 }

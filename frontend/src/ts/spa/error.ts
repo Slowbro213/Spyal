@@ -12,28 +12,57 @@ export enum Severity {
   catastrofic,
 }
 
-// Map each severity to its own file
-const severityToFile: Record<Severity, string> = {
-  [Severity.trivial]: 'public/html/error-trivial.html',
-  [Severity.small]: 'public/html/error-small.html',
-  [Severity.normal]: 'public/html/error.html',
-  [Severity.huge]: 'public/html/error-huge.html',
-  [Severity.catastrofic]: 'public/html/error-catastrofic.html',
+const severityToEmoji: Record<Severity, string> = {
+  [Severity.trivial]: '😅',
+  [Severity.small]: '🙄',
+  [Severity.normal]: '😱',
+  [Severity.huge]: '🤯',
+  [Severity.catastrofic]: '💥',
+};
+
+const severityToColor: Record<Severity, string> = {
+  [Severity.trivial]: '#4ade80', // green
+  [Severity.small]: '#60a5fa', // blue
+  [Severity.normal]: '#f59e0b', // amber
+  [Severity.huge]: '#ef4444', // red
+  [Severity.catastrofic]: '#7e22ce', // purple
 };
 
 const toast: Toast = initToast();
 
-export const serveErrorPage = async (severity: Severity = Severity.normal) => {
+export const serveErrorPage = async (
+  severity: Severity = Severity.normal,
+  customTitle = 'Gabim i Madh!',
+  customMessage = 'Ndodhi një gabim i papritur. Ju lutemi rifilloni lojën.'
+) => {
   if (Config.STAGE === Staging.Production && severity < Severity.normal) return;
 
-  if (Severity.small >= severity)
+  if (severity <= Severity.small) {
     toast.show(Level.Error, Importance.Minor, {
-      title: 'Small Error Occured',
-      message: 'A small error has occured, check logs',
+      title: 'Small Error Occurred',
+      message: 'A small error has occurred, check logs',
     });
+  }
 
-  const file = severityToFile[severity] || severityToFile[Severity.normal];
-  const res = await fetch(file);
-  const errorHtml = await res.text();
-  document.body.innerHTML = errorHtml;
+  try {
+    const res = await fetch('public/html/error.html');
+    let errorHtml = await res.text();
+
+    // Replace template placeholders with dynamic content
+    errorHtml = errorHtml
+      .replace(/{{\s*title[^}]*}}/g, customTitle) // Matches {{title...}}
+      .replace(/{{\s*message[^}]*}}/g, customMessage) // Matches {{message...}}
+      .replace(/{{\s*emoji[^}]*}}/g, severityToEmoji[severity]) // Fixed typo: emoji
+      .replace(/{{\s*color[^}]*}}/g, severityToColor[severity]); // Matches {{color...}}
+
+    document.body.innerHTML = errorHtml;
+  } catch (error) {
+    console.error(error);
+    document.body.innerHTML = `
+      <div style="text-align:center;padding:2rem">
+        <h1>${customTitle}</h1>
+        <p>${customMessage}</p>
+      </div>
+    `;
+  }
 };

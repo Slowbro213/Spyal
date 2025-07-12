@@ -6,7 +6,7 @@ export const initToast = (): Toast => {
   if (toast) return toast;
   toast = document.querySelector('toast-service') as Toast;
   if (!toast) {
-    console.log('No toast :(');
+    console.log('No Toast :(');
   }
   return toast;
 };

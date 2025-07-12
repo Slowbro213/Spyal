@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Gabim | Spyfall Shqip</title>
+    <title>{{title}} | Spyfall Shqip</title>
     <style>
       html,
       body {
@@ -18,6 +18,7 @@
         justify-content: center;
         min-height: 100vh;
       }
+
       .container {
         background: #23243a;
         border-radius: 1.25rem;
@@ -27,24 +28,28 @@
         max-width: 400px;
         width: 94%;
       }
+
       .emoji {
         font-size: 3rem;
         margin-bottom: 0.5rem;
       }
+
       h1 {
         font-size: 2.2rem;
         margin: 0.4em 0 0.4em 0;
         font-weight: 700;
       }
+
       p {
         font-size: 1.15rem;
         color: #bbbbce;
         margin-bottom: 1.5em;
         margin-top: 0;
       }
+
       a.button {
         display: inline-block;
-        background: #14b8a6;
+        background: {{color|#14b8a6}};
         color: #23243a;
         font-weight: 600;
         padding: 0.75em 2.2em;
@@ -54,32 +59,34 @@
         transition: background 0.18s;
         box-shadow: 0 2px 8px rgba(20, 184, 166, 0.07);
       }
+
       a.button:hover {
         background: #0e8b82;
         color: #ececec;
       }
+
       @media (max-width: 600px) {
         .container {
           padding: 1.2rem 0.6rem 1.2rem 0.6rem;
         }
+
         h1 {
           font-size: 1.5rem;
         }
+
         .emoji {
           font-size: 2rem;
         }
       }
     </style>
   </head>
+
   <body>
     <div class="container">
-      <div class="emoji">😢</div>
-      <h1>Gabim i papritur</h1>
-      <p>
-        Na vjen keq, diçka shkoi keq.<br />
-        Ju lutemi provoni përsëri më vonë.<br />
-        Nëse problemi vazhdon, kontaktoni administratorin.
-      </p>
+      <div class="emoji">{{emoji|😱}}</div>
+
+      <h1 id="error-title">{{title|Gabim i Madh!}}</h1>
+      <p id="error-message">{{message|Ndodhi një gabim i papritur}}</p>
       <a href="/" class="button">Kthehu në Faqen Kryesore</a>
     </div>
   </body>

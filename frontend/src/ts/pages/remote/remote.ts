@@ -46,9 +46,6 @@ export const pageRemoteInit = () => {
       isPrivate,
     };
 
-    // Do what you want with form (log, send, etc)
-    console.log(form);
-
     client.post('/create/remote', {
       params: { ...form },
     });

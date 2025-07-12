@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ func BrotliStatic(dir string) http.Handler {
 
 			if !strings.HasPrefix(brPath, safeDir) {
 				http.Error(w, "Invalid file name", http.StatusBadRequest)
+				log.Printf("Incorrect File: %s prefix: %s\n",brPath, safeDir)
 				return
 			}
 
@@ -37,6 +39,7 @@ func BrotliStatic(dir string) http.Handler {
 
 		if !strings.HasPrefix(path, safeDir) {
 			http.Error(w, "Invalid file name", http.StatusBadRequest)
+			log.Printf("Incorrect File: %s prefix: %s\n",path, safeDir)
 			return
 		}
 

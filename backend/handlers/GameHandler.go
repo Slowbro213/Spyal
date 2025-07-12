@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"html/template"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"go.uber.org/zap"
 )
 
 type GameHandler struct {
-	l        *log.Logger
+	l        *zap.Logger
 	viewsDir string
 	games    map[string]Game
 }
@@ -30,7 +31,7 @@ const (
 )
 
 // NewGameHandler creates a new GameHandler.
-func NewGameHandler(l *log.Logger, vd string) *GameHandler {
+func NewGameHandler(l *zap.Logger, vd string) *GameHandler {
 	return &GameHandler{
 		l:        l,
 		viewsDir: vd,
@@ -74,13 +75,13 @@ func (gh *GameHandler) renderTemplate(w http.ResponseWriter, layout, page string
 		filepath.Join(gh.viewsDir, "pages", page),
 	)
 	if err != nil {
-		gh.l.Printf("Error parsing templates: %v", err)
+		gh.l.Error(fmt.Sprintf("Error parsing templates: %v", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	if err := tmpl.ExecuteTemplate(w, "base", props); err != nil {
-		gh.l.Printf("Error executing template: %v", err)
+		gh.l.Error(fmt.Sprintf("Error executing template: %v", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

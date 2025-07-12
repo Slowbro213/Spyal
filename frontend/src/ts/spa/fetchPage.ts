@@ -1,4 +1,5 @@
 import { pageCache } from './pageCache';
+import { log } from './logger';
 
 export const fetchPage = async (href: string) => {
   if (pageCache.has(href)) {
@@ -13,6 +14,9 @@ export const fetchPage = async (href: string) => {
 
     pageCache.set(href, html);
   } catch (err) {
-    console.error('SmartLink fetch failed:', err);
+    log({
+      level: 'error',
+      msg: `Failed to fetch page: ${href}, Error: ${err}`,
+    });
   }
 };

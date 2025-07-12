@@ -1,19 +1,21 @@
 package renderer
 
 import (
+	"go.uber.org/zap"
 	"html/template"
-	"log"
 	"os"
+	"fmt"
+
 	"net/http"
 	"path/filepath"
 )
 
 type RenderHandler struct {
-	l        *log.Logger
+	l        *zap.Logger
 	viewsDir string
 }
 
-func NewRenderHandler(l *log.Logger, vd string) *RenderHandler {
+func NewRenderHandler(l *zap.Logger, vd string) *RenderHandler {
 	return &RenderHandler{
 		l:        l,
 		viewsDir: vd,
@@ -58,14 +60,14 @@ func (rh *RenderHandler) RenderPage(w http.ResponseWriter, r *http.Request) {
 		filepath.Join(rh.viewsDir, "components", "room.html"),
 	)
 	if err != nil {
-		rh.l.Printf("Template parse error: %v", err)
+		rh.l.Error(fmt.Sprintf("Template parse error: %v", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	// ✅ Render the "base" layout template, which should include others via {{ template }}
 	if err := tmpl.ExecuteTemplate(w, "base", props); err != nil {
-		rh.l.Printf("Template exec error: %v", err)
+		rh.l.Error(fmt.Sprintf("Template exec error: %v", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -87,14 +89,14 @@ func (rh *RenderHandler) RenderComponent(w http.ResponseWriter, r *http.Request)
 func (rh *RenderHandler) render(w http.ResponseWriter, componentPath string, props map[string]any) {
 	tmpl, err := template.ParseFiles(componentPath)
 	if err != nil {
-		rh.l.Printf("Error parsing template: %v", err)
+		rh.l.Error(fmt.Sprintf("Error parsing template: %v", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	err = tmpl.Execute(w, props)
 	if err != nil {
-		rh.l.Printf("Error executing template: %v", err)
+		rh.l.Error(fmt.Sprintf("Error executing template: %v", err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

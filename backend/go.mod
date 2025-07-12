@@ -9,6 +9,7 @@ require (
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/tdewolff/minify/v2 v2.23.8
 	go.uber.org/zap v1.27.0
+	golang.org/x/time v0.12.0
 )
 
 require (

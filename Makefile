@@ -47,7 +47,12 @@ docker-build:
 
 # 🐳 Run Docker container with env file
 docker-run:
-	docker run --env-file .env.production -p 8080:8080 alspy
+	docker run \
+		--env-file .env.production \
+		-p 8080:8080 \
+		-v /var/log/alspy.log:/var/log/alspy.log \
+		alspy
+
 # 🪝 Run Lefthook manually
 precommit:
 	lefthook run pre-commit

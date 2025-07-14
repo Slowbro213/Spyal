@@ -1,0 +1,258 @@
+{{ define "title" }}Spyfall Shqip - Dhoma e Lojës{{ end }} {{ define "content"
+}}
+<section class="hero">
+  <div class="container mx-auto px-4 text-center">
+    <span class="hero-emoji">🕵️‍♂️</span>
+    <h1 class="hero-text mt-4 min-h-20">Dhoma e Lojës</h1>
+    <p
+      class="hero-text mt-4 text-xl md:text-2xl max-w-2xl mx-auto"
+      style="color: var(--text-secondary)"
+    >
+      Emri i Dhomës:
+      <span class="font-semibold" style="color: var(--primary-teal)"
+        >{{.RoomName}}</span
+      >
+    </p>
+  </div>
+</section>
+
+<section id="game-room" class="container mx-auto px-4 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column - Players List -->
+    <div class="lg:col-span-1">
+      <div class="feature-card p-6">
+        <h2 class="text-xl font-bold mb-4 flex justify-between items-center">
+          <span>Lojtarët ({{.PlayerCount}}/{{.MaxPlayers}})</span>
+          <span
+            class="text-sm font-normal badge bg-[var(--primary-teal)] text-white px-3 py-1 rounded-full"
+          >
+            {{if .IsPublic}}Publike{{else}}Private{{end}}
+          </span>
+        </h2>
+
+        <div class="space-y-3">
+          {{range .Players}}
+          <div
+            class="flex items-center justify-between p-3 rounded-lg"
+            style="
+              background: var(--card-bg);
+              border: 1px solid var(--border-accent);
+            "
+          >
+            <div class="flex items-center">
+              <span
+                class="w-8 h-8 rounded-full bg-[var(--primary-teal)] text-white flex items-center justify-center mr-3"
+              >
+                {{if .IsHost}}👑{{else}}👤{{end}}
+              </span>
+              <span>{{.Name}}</span>
+            </div>
+            {{if .IsReady}}
+            <span class="text-[var(--accent-green)]"
+              ><i class="fas fa-check-circle"></i
+            ></span>
+            {{end}}
+          </div>
+          {{end}}
+        </div>
+
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-medium">Kodi i Dhomës:</span>
+            <div class="flex items-center">
+              <span class="font-mono bg-gray-100 px-3 py-1 rounded mr-2"
+                >{{.RoomCode}}</span
+              >
+              <button
+                type="button"
+                onclick="copyRoomCode()"
+                class="text-[var(--primary-teal)] hover:text-[var(--primary-teal-dark)]"
+              >
+                <i class="far fa-copy"></i>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-primary w-full mt-4"
+            onclick="shareRoom()"
+          >
+            <i class="fas fa-share-alt mr-2"></i> Fto Miq
+          </button>
+
+          {{if .IsHost}}
+          <button
+            type="button"
+            class="btn-secondary w-full mt-3"
+            id="start-game-btn"
+          >
+            <i class="fas fa-play mr-2"></i> Fillo Lojën
+          </button>
+          {{else}}
+          <button
+            type="button"
+            class="btn-secondary w-full mt-3"
+            id="ready-btn"
+          >
+            <i class="fas fa-thumbs-up mr-2"></i> {{if
+            .IsReady}}Përgatitur{{else}}Bëhu gati{{end}}
+          </button>
+          {{end}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Column - Game Info/Chat -->
+    <div class="lg:col-span-2">
+      <div class="feature-card p-6 h-full">
+        {{if .GameStarted}}
+        <!-- Game in progress content -->
+        <div class="text-center py-8">
+          <h2 class="text-2xl font-bold mb-4">Lojë në progres</h2>
+          <div class="mb-6">
+            <div
+              class="inline-block bg-[var(--primary-teal)] text-white px-4 py-2 rounded-full"
+            >
+              Koha e mbetur: <span id="timer">08:00</span>
+            </div>
+          </div>
+
+          {{if .IsSpy}}
+          <div
+            class="bg-[var(--accent-red)] bg-opacity-10 p-4 rounded-lg mb-6 border border-[var(--accent-red)]"
+          >
+            <h3 class="text-xl font-bold text-[var(--accent-red)] mb-2">
+              Ti je SPIUNI!
+            </h3>
+            <p>Mos u zbuloni duke bërë pyetje të përgjithshme.</p>
+          </div>
+          {{else}}
+          <div
+            class="bg-[var(--accent-green)] bg-opacity-10 p-4 rounded-lg mb-6 border border-[var(--accent-green)]"
+          >
+            <h3 class="text-xl font-bold text-[var(--accent-green)] mb-2">
+              Vendndodhja:
+            </h3>
+            <p class="text-2xl font-bold">{{.Location}}</p>
+            <p class="text-sm mt-2">Roli: {{.Role}}</p>
+          </div>
+          {{end}}
+
+          <div class="mt-8">
+            <button type="button" class="btn-primary" id="accuse-btn">
+              <i class="fas fa-user-secret mr-2"></i> Akuzo dikë
+            </button>
+            <button type="button" class="btn-secondary ml-3" id="end-game-btn">
+              <i class="fas fa-flag mr-2"></i> Përfundo lojën
+            </button>
+          </div>
+        </div>
+        {{else}}
+        <!-- Waiting room content -->
+        <div class="text-center py-8">
+          <h2 class="text-2xl font-bold mb-4">
+            Duke pritur lojtarë të tjerë...
+          </h2>
+          <p class="text-lg mb-6" style="color: var(--text-secondary)">
+            {{if .IsHost}} Ju jeni hosti. Mund të filloni lojën kur të jenë gati
+            të paktën 3 lojtarë. {{else}} Pritni hostin të fillojë lojën.
+            Sigurohuni që të klikoni "Bëhu gati". {{end}}
+          </p>
+
+          <div class="max-w-md mx-auto">
+            <h3 class="font-bold mb-2">Udhëzime të shpejta:</h3>
+            <ul
+              class="text-left space-y-2"
+              style="color: var(--text-secondary)"
+            >
+              <li class="flex items-start">
+                <span class="mr-2">•</span> Spiuni nuk e di vendndodhjen
+              </li>
+              <li class="flex items-start">
+                <span class="mr-2">•</span> Të tjerët duhet të përgjigjen pa u
+                zbuluar vendndodhjen
+              </li>
+              <li class="flex items-start">
+                <span class="mr-2">•</span> Diskutoni dhe gjeni spiunin para se
+                të skadojë koha
+              </li>
+            </ul>
+          </div>
+        </div>
+        {{end}}
+
+        <!-- Chat section -->
+        <div
+          class="mt-8 border-t pt-6"
+          style="border-color: var(--border-accent)"
+        >
+          <h3 class="font-bold mb-3">Biseda</h3>
+          <div
+            id="chat-messages"
+            class="h-48 overflow-y-auto mb-4 space-y-2"
+            style="color: var(--text-primary)"
+          >
+            <!-- Chat messages will appear here -->
+            <div class="text-center py-4" style="color: var(--text-secondary)">
+              Bisedoni me lojtarët e tjerë këtu...
+            </div>
+          </div>
+          <div class="flex">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Shkruani mesazhin tuaj..."
+              class="flex-grow px-4 py-2 rounded-l-lg border border-[var(--border-accent)] focus:outline-none focus:border-[var(--primary-teal)]"
+              style="background: var(--card-bg)"
+            />
+            <button
+              type="button"
+              id="send-chat-btn"
+              class="bg-[var(--primary-teal)] text-white px-4 py-2 rounded-r-lg hover:bg-[var(--primary-teal-dark)] transition-colors"
+            >
+              Dërgo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function copyRoomCode() {
+    const roomCode = '{{.RoomCode}}';
+    navigator.clipboard.writeText(roomCode);
+    alert('Kodi u kopjua: ' + roomCode);
+  }
+
+  function shareRoom() {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: 'Bashkohu në lojën time të Spyfall!',
+          text: `Bashkohu me mua në lojën Spyfall! Kodi i dhomës: {{.RoomCode}}`,
+          url: window.location.href,
+        })
+        .catch((err) => console.log('Error sharing:', err));
+    } else {
+      copyRoomCode();
+      alert('Kodi u kopjua. Ndaje me miqtë!');
+    }
+  }
+
+  document.getElementById('ready-btn')?.addEventListener('click', function () {
+    this.innerHTML = this.innerHTML.includes('gati')
+      ? '<i class="fas fa-thumbs-up mr-2"></i> Përgatitur'
+      : '<i class="fas fa-thumbs-up mr-2"></i> Bëhu gati';
+  });
+
+  document
+    .getElementById('start-game-btn')
+    ?.addEventListener('click', function () {
+      // Start game logic
+      alert('Lojë duke u nisur...');
+    });
+</script>
+{{ end }}

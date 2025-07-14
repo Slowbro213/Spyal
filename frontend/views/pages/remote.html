@@ -68,25 +68,23 @@
             />
           </div>
 
-          <!-- Game Duration -->
+          <!-- Spy Number -->
           <div>
             <label
-              for="game-duration"
+              for="spy-number"
               class="block text-lg font-semibold mb-2"
               style="color: var(--text-primary)"
             >
-              Sa gjatë dëshironi të zgjasë loja?
+              Numri i Spiunëve
             </label>
             <select
-              id="game-duration"
-              name="game-duration"
+              id="spy-number"
+              name="spy-number"
               class="w-full pl-4 py-3 rounded-xl border border-r-8 border-transparent outline outline-[var(--border-accent)] focus:outline-[var(--primary-teal)] transition-colors duration-200"
-              style="background: var(--card-bg); color: var(--text-primary)"
+              required
             >
-              <option value="5">5 Minuta</option>
-              <option value="8" selected>8 Minuta</option>
-              <option value="10">10 Minuta</option>
-              <option value="15">15 Minuta</option>
+              <option value="1" selected>1 Spiun</option>
+              <option value="2">2 Spiunë</option>
             </select>
           </div>
 

@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"spyal/core"
 	"spyal/handlers"
 	"spyal/middleware"
 	"spyal/pkg/utils/logger"
 	"spyal/pkg/utils/metrics"
-	"spyal/renderer"
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -52,46 +52,48 @@ func setupRouter(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 	username := os.Getenv("USERNAME")
 	password := os.Getenv("PASSWORD")
 
-	rh := renderer.NewRenderHandler(myLogger, viewsDir)
+	hh := handlers.NewHomeHandler(myLogger, viewsDir)
 	gh := handlers.NewGameHandler(myLogger, viewsDir)
 	lh := handlers.NewLogHandler(myLogger)
 
-	mux := http.NewServeMux()
+	router := core.NewRouter()
 
-	mux.Handle("/public/", http.StripPrefix("/public/", middleware.BrotliStatic(publicDir)))
+	router.Get("/public/", http.StripPrefix("/public/", middleware.BrotliStatic(publicDir)).ServeHTTP)
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
 			return
 		}
-		rh.RenderPage(w, r)
+		hh.HomePage(w, r)
 	})
 
-	mux.HandleFunc("/create", gh.CreateGame)
-	mux.HandleFunc("/create/remote", gh.CreateRemoteGame)
+	router.Get("/create", gh.CreateGamePage)
+	router.Get("/create/remote", gh.CreateRemoteGamePage)
 
-	mux.Handle("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))))
+	router.Post("/create/remote", gh.CreateRemoteGame)
 
-	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))).ServeHTTP)
+
+	router.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(publicDir, "favicon.ico"))
 	})
 
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+	router.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
 
-	mux.Handle("/metrics", middleware.UsernamePassword(username, password, promhttp.Handler(), *myLogger))
+	router.Get("/metrics", middleware.UsernamePassword(username, password, promhttp.Handler(), *myLogger).ServeHTTP)
 
-	mux.HandleFunc("/api/log", lh.LogFrontend)
+	router.Post("/api/log", lh.LogFrontend)
 
-	handler := middleware.MinifyGzipMiddleware(mux)
+
+	handler := middleware.MinifyGzipMiddleware(router)
 	handler = middleware.TrackMetrics(metrics, handler)
 	handler = middleware.RateLimitMiddleware(handler)
 
 	return handler
 }
-
 func startServer(handler http.Handler) {
 	port := os.Getenv("PORT")
 	if port == "" {

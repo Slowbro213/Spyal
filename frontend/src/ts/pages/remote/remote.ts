@@ -1,56 +1,59 @@
 import { client } from '@alspy/api';
+import { Importance, initToast, Level } from '@alspy/services/toast';
 import type { RemoteGameForm } from './types';
 
+function handleFormSubmit(event: Event) {
+  event.preventDefault();
+
+  const toast = initToast();
+
+  const { data } = (event as CustomEvent<{ data: Record<string, string> }>)
+    .detail;
+
+  const playerName = data['player-nickname']?.trim() || '';
+  const gameNameRaw = data['game-name']?.trim() || '';
+  const spyNumber = Number(data['spy-number']);
+  const maxPlayers = Number(data['max-players']);
+  const isPrivate = data['game-visibility'] === 'private';
+
+  if (
+    !playerName ||
+    !spyNumber ||
+    !maxPlayers ||
+    !('game-visibility' in data)
+  ) {
+    toast.show(Level.Error, Importance.Major, {
+      message: 'Plotësoni të gjitha fushat e detyrueshme!',
+    });
+    return;
+  }
+
+  const gameName =
+    gameNameRaw || (playerName ? `Dhoma e ${playerName}` : 'Spyfall Dhoma');
+
+  const form: RemoteGameForm = {
+    playerName,
+    gameName,
+    spyNumber,
+    maxNumbers: maxPlayers,
+    isPrivate,
+  };
+
+  client.post('/create/remote', {
+    params: { ...form },
+  });
+}
+
 export const pageRemoteInit = () => {
-  // Use the smart-form element, not the native form
-  const formEl = document.getElementById(
-    'create-online-form'
-  ) as HTMLElement | null;
+  const formEl = document.getElementById('create-online-form');
   if (!formEl) return;
 
-  formEl.addEventListener('smart-form:submit', (event: Event) => {
-    event.preventDefault();
+  formEl.addEventListener('smart-form:submit', handleFormSubmit);
+};
 
-    // Get plain data object from custom event
-    const { data } = (event as CustomEvent<{ data: Record<string, string> }>)
-      .detail;
+export const pageRemoteDestroy = () => {
+  const formEl = document.getElementById('create-online-form');
+  if (!formEl) return;
 
-    // Extract/parse and validate
-    const playerName = data['player-nickname']?.trim() || '';
-    const gameNameRaw = data['game-name']?.trim() || '';
-    const gameDuration = Number(data['game-duration']);
-    const maxPlayers = Number(data['max-players']);
-    const isPrivate = data['game-visibility'] === 'private';
-
-    // Validation: Required fields
-    if (
-      !playerName ||
-      !gameDuration ||
-      !maxPlayers ||
-      !('game-visibility' in data)
-    ) {
-      alert('Plotësoni të gjitha fushat e detyrueshme!');
-      return;
-    }
-
-    // Generate gameName if not set
-    const gameName =
-      gameNameRaw || (playerName ? `Dhoma e ${playerName}` : 'Spyfall Dhoma');
-
-    // Build the form object (type safe)
-    const form: RemoteGameForm = {
-      playerName,
-      gameName,
-      time: gameDuration,
-      maxNumbers: maxPlayers,
-      isPrivate,
-    };
-
-    client.post('/create/remote', {
-      params: { ...form },
-    });
-
-    // Example: submit with fetch, call API, etc.
-    // fetch("/your/api", { method: "POST", body: JSON.stringify(form), headers: { "Content-Type": "application/json" } });
-  });
+  formEl.removeEventListener('smart-form:submit', handleFormSubmit);
 };

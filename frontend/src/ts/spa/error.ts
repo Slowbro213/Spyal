@@ -48,12 +48,11 @@ export const serveErrorPage = async (
     const res = await fetch('public/html/error.html');
     let errorHtml = await res.text();
 
-    // Replace template placeholders with dynamic content
     errorHtml = errorHtml
-      .replace(/{{\s*title[^}]*}}/g, customTitle) // Matches {{title...}}
-      .replace(/{{\s*message[^}]*}}/g, customMessage) // Matches {{message...}}
-      .replace(/{{\s*emoji[^}]*}}/g, severityToEmoji[severity]) // Fixed typo: emoji
-      .replace(/{{\s*color[^}]*}}/g, severityToColor[severity]); // Matches {{color...}}
+      .replace(/{{\s*title[^}]*}}/g, customTitle)
+      .replace(/{{\s*message[^}]*}}/g, customMessage)
+      .replace(/{{\s*emoji[^}]*}}/g, severityToEmoji[severity])
+      .replace(/{{\s*color[^}]*}}/g, severityToColor[severity]);
 
     document.body.innerHTML = errorHtml;
   } catch (error) {

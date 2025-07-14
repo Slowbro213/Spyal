@@ -29,7 +29,6 @@ func GetRedis() (*redis.Client, error) {
 			Addr: addr,
 		})
 
-		// Test the connection
 		_, err = redisInstance.Ping(context.Background()).Result()
 	})
 

@@ -1,7 +1,7 @@
 export type RemoteGameForm = {
   playerName: string;
   gameName?: string;
-  time: number;
+  spyNumber: number;
   maxNumbers: number;
   isPrivate: boolean;
 };

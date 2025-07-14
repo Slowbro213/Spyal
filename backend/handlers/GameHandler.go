@@ -1,87 +1,142 @@
 package handlers
 
 import (
-	"html/template"
-	"fmt"
-	"net/http"
-	"os"
-	"path/filepath"
+	"context"
+	"time"
+
+	"encoding/json"
 	"go.uber.org/zap"
+	"net/http"
+	"spyal/core"
+	"spyal/db"
+	"spyal/pkg/pages"
+	"spyal/pkg/utils"
+	"spyal/pkg/utils/template"
 )
 
 type GameHandler struct {
-	l        *zap.Logger
+	core.Handler
 	viewsDir string
-	games    map[string]Game
 }
+
+type GameForm struct {
+	Params struct {
+		PlayerName string `json:"playerName"`
+		GameName   string `json:"gameName"`
+		Spies      int  	`json:"spyNumber"`
+		MaxNumbers int    `json:"maxNumbers"`
+		IsPrivate  bool   `json:"isPrivate"`
+	} `json:"params"`
+}
+
+type Round struct {
+	Number     int      `json:"number"`
+	Word       string   `json:"word"`
+	SpyWord    string   `json:"spyWord"`
+	Spies      []string `json:"spies"` 
+	Winner     string   `json:"winner"`  
+}
+
+
 
 type Game struct {
-	RoomID    string
-	IsLocal   bool
-	Players   []string
-	CreatedAt int64
+	RoomID      string   `json:"roomID"`
+	Players     []string `json:"players"`
+	Word        string   `json:"word"`
+	SpyWord     string   `json:"spyWord"`
+	Spies       []string `json:"spies"`
+	RoomName    string   `json:"roomName"`
+	IsPublic    bool     `json:"isPublic"`
+	MaxPlayers  int      `json:"maxPlayers"`
+	GameStarted bool     `json:"gameStarted"`
+	Rounds      []Round  `json:"rounds"`
+	CreatedAt   int64    `json:"createdAt"`
 }
 
-// Layout constants.
-const (
-	LayoutBase   = "base.html"
-	LayoutEmpty  = "empty.html"
-	PageCreate   = "create.html"
-	PageOnline   = "remote.html"
-)
 
-// NewGameHandler creates a new GameHandler.
 func NewGameHandler(l *zap.Logger, vd string) *GameHandler {
 	return &GameHandler{
-		l:        l,
+		Handler: core.Handler{
+			Log: l,
+		},
 		viewsDir: vd,
-		games:    make(map[string]Game),
 	}
 }
 
-// CreateGame handles creation of local games (renders the create page).
-func (gh *GameHandler) CreateGame(w http.ResponseWriter, r *http.Request) {
-	isFragment := r.Header.Get("X-Smart-Link") == "true"
+func (gh *GameHandler) CreateGamePage(w http.ResponseWriter, r *http.Request) {
+	isFragment := pages.IsFragment(r)
 	props := map[string]any{"title": "Spyfall Shqip - Krijo Lojë"}
-	gh.renderTemplate(w, LayoutBase, PageCreate, isFragment, props)
-}
-
-// CreateRemoteGame handles creation of remote games (renders the online page).
-func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) {
-	isFragment := r.Header.Get("X-Smart-Link") == "true"
-	props := map[string]any{"title": "Spyfall Shqip - Krijo Lojë Online"}
-	gh.renderTemplate(w, LayoutBase, PageOnline, isFragment, props)
-}
-// renderTemplate renders a template with the given layout, page, and props.
-// If isFragment is true, uses the empty layout.
-func (gh *GameHandler) renderTemplate(w http.ResponseWriter, layout, page string, isFragment bool, props map[string]any) {
-	var tmpl *template.Template
-	var err error
-
-	stage := os.Getenv("STAGE")
-	if stage == "" {
-		stage = "development" // fallback default.
-	}
-	props["Stage"] = stage
-
-	layoutName := layout
-	if isFragment {
-		layoutName = LayoutEmpty
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	}
-
-	tmpl, err = template.ParseFiles(
-		filepath.Join(gh.viewsDir, "layouts", layoutName),
-		filepath.Join(gh.viewsDir, "pages", page),
+	renderer := template.NewRenderer(gh.Log, gh.viewsDir)
+	renderer.Render(w, isFragment, props,
+		pages.LayoutBase,
+		pages.PageCreate,
 	)
+}
+
+func (gh *GameHandler) CreateRemoteGamePage(w http.ResponseWriter, r *http.Request) {
+	isFragment := pages.IsFragment(r)
+	props := map[string]any{"title": "Spyfall Shqip - Krijo Lojë Online"}
+	renderer := template.NewRenderer(gh.Log, gh.viewsDir)
+	renderer.Render(w, isFragment, props,
+		pages.LayoutBase,
+		pages.PageRemote,
+	)
+}
+
+func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) {
+	var body GameForm
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&body); err != nil {
+		gh.Log.Error("failed to decode JSON", zap.Error(err))
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	roomID, err := utils.GenerateRoomID()
 	if err != nil {
-		gh.l.Error(fmt.Sprintf("Error parsing templates: %v", err))
+		gh.Log.Error("Error while generating Room ID: ", zap.Error(err))
+	}
+
+	game := Game{
+		RoomID:      roomID,
+		Players:     []string{body.Params.PlayerName},
+		RoomName:    body.Params.GameName,
+		IsPublic:    !body.Params.IsPrivate,
+		MaxPlayers:  body.Params.MaxNumbers,
+		GameStarted: false,
+		CreatedAt:   time.Now().Unix(),
+	}
+
+	gameJSON, err := json.Marshal(game)
+	if err != nil {
+		gh.Log.Error("failed to marshal game to JSON", zap.Error(err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "base", props); err != nil {
-		gh.l.Error(fmt.Sprintf("Error executing template: %v", err))
+	client, err := db.GetRedis()
+	if err != nil {
+		gh.Log.Error("failed to connect to Redis", zap.Error(err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	ctx := context.Background()
+	err = client.Set(ctx, "game:"+roomID, gameJSON, 0).Err()
+	if err != nil {
+		gh.Log.Error("failed to store game in Redis", zap.Error(err))
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	gh.Log.Info("stored game in Redis", zap.String("roomID", roomID))
+
+	resp := map[string]any{"roomID": roomID}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		gh.Log.Error("Error while Encoding Json: ", zap.Error(err))
 	}
 }

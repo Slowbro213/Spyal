@@ -3,6 +3,7 @@ module spyal
 go 1.24.4
 
 require (
+	github.com/coder/websocket v1.8.13
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/prometheus/client_golang v1.22.0

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"net/http"
+	"spyal/core"
 	"strings"
 
 	"github.com/tdewolff/minify/v2"
@@ -11,13 +12,12 @@ import (
 )
 
 type bufferedWriter struct {
-	http.ResponseWriter
-	statusCode int
-	buf        *bytes.Buffer
+	core.Middleware
+	buf *bytes.Buffer
 }
 
 func (w *bufferedWriter) WriteHeader(statusCode int) {
-	w.statusCode = statusCode
+	w.StatusCode = statusCode
 }
 
 func (w *bufferedWriter) Write(b []byte) (int, error) {
@@ -35,11 +35,18 @@ func MinifyGzipMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		if core.IsWebSocketRequest(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// Only apply to HTML
 		bw := &bufferedWriter{
-			ResponseWriter: w,
-			buf:            &bytes.Buffer{},
-			statusCode:     http.StatusOK,
+			Middleware: core.Middleware{
+				ResponseWriter: w,
+				StatusCode:     http.StatusOK,
+			},
+			buf: &bytes.Buffer{},
 		}
 
 		next.ServeHTTP(bw, r)
@@ -47,7 +54,7 @@ func MinifyGzipMiddleware(next http.Handler) http.Handler {
 		contentType := w.Header().Get("Content-Type")
 		if !strings.Contains(contentType, "text/html") {
 			// not HTML, send raw
-			w.WriteHeader(bw.statusCode)
+			w.WriteHeader(bw.StatusCode)
 			_, err := w.Write(bw.buf.Bytes())
 			if err != nil {
 				http.Error(w, "Minification header writing failed", http.StatusInternalServerError)
@@ -63,7 +70,7 @@ func MinifyGzipMiddleware(next http.Handler) http.Handler {
 
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Del("Content-Length") // gzip will change it
-		w.WriteHeader(bw.statusCode)
+		w.WriteHeader(bw.StatusCode)
 
 		gzw := gzip.NewWriter(w)
 		defer gzw.Close()

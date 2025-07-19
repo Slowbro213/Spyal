@@ -1,8 +1,11 @@
 import { pageCache } from './pageCache';
 import { log } from './logger';
+import { GetPage, isCacheValid } from '@alspy/pages';
 
 export const fetchPage = async (href: string) => {
-  if (pageCache.has(href)) {
+  const page = GetPage(href);
+  const cacheValid = isCacheValid(page);
+  if (pageCache.has(href) && cacheValid) {
     return;
   }
   try {
@@ -13,6 +16,7 @@ export const fetchPage = async (href: string) => {
     const html = await res.text();
 
     pageCache.set(href, html);
+    if (page) page.lastVisited = Date.now();
   } catch (err) {
     log({
       level: 'error',

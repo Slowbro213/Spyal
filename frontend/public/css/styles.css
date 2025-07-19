@@ -55,8 +55,7 @@ body {
 }
 
 .btn-secondary:hover {
-  background: var(--secondary-coral-dark);
-  box-shadow: 0 0 10px rgb(251 113 133 / 80%);
+  background: var(--accent-violet-dark);
 }
 
 /* Feature cards - semi-transparent with teal borders */

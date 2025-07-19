@@ -2,23 +2,23 @@ package middleware
 
 import (
 	"net/http"
-	"time"
+	"spyal/core"
 	"spyal/pkg/utils/metrics"
+	"time"
 )
 
 type responseWriter struct {
-	http.ResponseWriter
-	statusCode   int
+	core.Middleware
 	responseSize int
 }
 
 const (
-	successCode    = 200
+	successCode     = 200
 	errorCodesStart = 400
 )
 
 func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
+	rw.StatusCode = code
 	rw.ResponseWriter.WriteHeader(code)
 }
 
@@ -31,14 +31,21 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 // TrackMetrics wraps an http.Handler and observes Prometheus metrics.
 func TrackMetrics(m *metrics.Metrics, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if core.IsWebSocketRequest(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		m.InFlightRequests.Inc()
 		defer m.InFlightRequests.Dec()
 
 		start := time.Now()
 
 		rw := &responseWriter{
-			ResponseWriter: w,
-			statusCode:     successCode,
+			Middleware: core.Middleware{
+				ResponseWriter: w,
+				StatusCode:     successCode,
+			},
 		}
 
 		next.ServeHTTP(rw, r)
@@ -47,7 +54,7 @@ func TrackMetrics(m *metrics.Metrics, next http.Handler) http.Handler {
 
 		path := r.URL.Path
 		method := r.Method
-		statusCode := rw.statusCode
+		statusCode := rw.StatusCode
 		status := http.StatusText(statusCode)
 
 		m.TotalRequests.WithLabelValues(method, path, status).Inc()

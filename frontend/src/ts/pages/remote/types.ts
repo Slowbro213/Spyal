@@ -5,3 +5,7 @@ export type RemoteGameForm = {
   maxNumbers: number;
   isPrivate: boolean;
 };
+
+export type RemoteGameCreationResponse = {
+  roomID: string;
+};

@@ -5,22 +5,20 @@ import (
 
 	"spyal/core"
 	"spyal/pkg/pages"
-	"spyal/pkg/utils/template"
+	"spyal/pkg/utils/renderer"
 
 	"go.uber.org/zap"
 )
 
 type HomeHandler struct {
 	core.Handler
-	viewsDir string
 }
 
-func NewHomeHandler(l *zap.Logger, viewsDir string) *HomeHandler {
+func NewHomeHandler(l *zap.Logger) *HomeHandler {
 	return &HomeHandler{
 		Handler: core.Handler{
 			Log: l,
 		},
-		viewsDir: viewsDir,
 	}
 }
 
@@ -41,11 +39,13 @@ func (hh *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	isFragment := pages.IsFragment(r)
 
-	renderer := template.NewRenderer(hh.Log,hh.viewsDir)
-
-	renderer.Render( w, isFragment, props,
+	err := renderer.Render( w, isFragment, props,
 		pages.LayoutBase,
 		pages.PageHome,
 		pages.CompRoom,
 	)
+
+	if err != nil {
+		hh.Log.Error("Error while rendering Page: ", zap.Error(err))
+	}
 }

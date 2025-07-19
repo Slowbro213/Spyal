@@ -1,8 +1,9 @@
 import { client } from '@alspy/api';
 import { Importance, initToast, Level } from '@alspy/services/toast';
-import type { RemoteGameForm } from './types';
+import type { RemoteGameCreationResponse, RemoteGameForm } from './types';
+import { navigateToPage } from '@alspy/spa';
 
-function handleFormSubmit(event: Event) {
+async function handleFormSubmit(event: Event) {
   event.preventDefault();
 
   const toast = initToast();
@@ -39,9 +40,14 @@ function handleFormSubmit(event: Event) {
     isPrivate,
   };
 
-  client.post('/create/remote', {
-    params: { ...form },
-  });
+  const response: RemoteGameCreationResponse = await client.post(
+    '/create/remote',
+    {
+      params: { ...form },
+    }
+  );
+
+  navigateToPage(`/room/${response.roomID}`);
 }
 
 export const pageRemoteInit = () => {
@@ -56,4 +62,9 @@ export const pageRemoteDestroy = () => {
   if (!formEl) return;
 
   formEl.removeEventListener('smart-form:submit', handleFormSubmit);
+};
+
+export const pageRemoteCache = (): number => {
+  const seconds = 20;
+  return seconds * 1000;
 };

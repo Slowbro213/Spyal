@@ -3,6 +3,7 @@ import { prefetchRoutes } from './config';
 
 export { loadPage } from './loadPage';
 export { fetchPage } from './fetchPage';
+export { navigateToPage } from './navigateToPage';
 export { log } from './logger';
 
 window.addEventListener('popstate', async () => {

@@ -39,6 +39,7 @@ build:
 
 # 🚀 Run backend dev server
 dev:
+	cd backend && go run cmd/register/main.go
 	cd backend/cmd/server && go run main.go
 
 # 🐳 Build Docker image

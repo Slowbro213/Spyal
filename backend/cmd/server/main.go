@@ -8,9 +8,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"spyal/bootstrap"
 	"spyal/core"
+	"spyal/events"
 	"spyal/handlers"
 	"spyal/middleware"
+	"spyal/pkg/pages"
 	"spyal/pkg/utils/logger"
 	"spyal/pkg/utils/metrics"
 
@@ -25,6 +28,9 @@ const (
 	IdleTimeout  = 120 * time.Second
 )
 
+// echo reads from the WebSocket connection and then writes
+// the received message back to it.
+// The entire function has 10s to complete.
 func loadEnv() {
 	env := os.Getenv("ENV")
 	if env == "" {
@@ -37,23 +43,31 @@ func loadEnv() {
 	}
 }
 
-func initLoggerAndMetrics() (*zap.Logger, *metrics.Metrics) {
+func inits() (*zap.Logger, *metrics.Metrics) {
 	myLogger, err := logger.NewLogger()
 	if err != nil {
 		log.Fatalf("Error loading logger: %v", err)
 	}
+	core.Logger = myLogger
 	metrics := metrics.New()
+	err = pages.Init()
+	if err != nil {
+		myLogger.Error("Error while Initing Pages: ", zap.Error(err))
+		log.Fatalf("Error loading Initing Pages: %v", err)
+	}
 	return myLogger, metrics
 }
 
+//nolint
 func setupRouter(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 	publicDir := os.Getenv("PUBLIC_DIR")
 	viewsDir := os.Getenv("VIEWS_DIR")
 	username := os.Getenv("USERNAME")
 	password := os.Getenv("PASSWORD")
 
-	hh := handlers.NewHomeHandler(myLogger, viewsDir)
-	gh := handlers.NewGameHandler(myLogger, viewsDir)
+	hh := handlers.NewHomeHandler(myLogger)
+	gh := handlers.NewGameHandler(myLogger)
+	rh := handlers.NewRoomHandler(myLogger)
 	lh := handlers.NewLogHandler(myLogger)
 
 	router := core.NewRouter()
@@ -73,6 +87,8 @@ func setupRouter(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 
 	router.Post("/create/remote", gh.CreateRemoteGame)
 
+	router.Get("/room/", rh.Show)
+
 	router.Get("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))).ServeHTTP)
 
 	router.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +103,18 @@ func setupRouter(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 
 	router.Post("/api/log", lh.LogFrontend)
 
+	eServer := core.PokedServer{
+		Log: myLogger,
+		EmitEvent: events.NewEchoEvent,
+	}
+
+	err := bootstrap.InitAll()
+	if err != nil {
+		myLogger.Error("Error initializing " , zap.Error(err))
+		log.Fatalf("Error initializing %v",err)
+	}
+
+	router.Get("/echo", eServer.StartWSServer)
 
 	handler := middleware.MinifyGzipMiddleware(router)
 	handler = middleware.TrackMetrics(metrics, handler)
@@ -115,7 +143,7 @@ func startServer(handler http.Handler) {
 func main() {
 	loadEnv()
 
-	myLogger, metrics := initLoggerAndMetrics()
+	myLogger, metrics := inits()
 
 	handler := setupRouter(myLogger, metrics)
 

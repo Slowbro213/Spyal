@@ -11,7 +11,7 @@ import (
 	"spyal/db"
 	"spyal/pkg/pages"
 	"spyal/pkg/game"
-	"spyal/pkg/utils"
+	"spyal/pkg/utils/room"
 	"spyal/pkg/utils/renderer"
 )
 
@@ -62,7 +62,7 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	roomID, err := utils.GenerateRoomID()
+	roomID, err := room.GenerateRoomID()
 	if err != nil {
 		gh.Log.Error("Error while generating Room ID: ", zap.Error(err))
 	}

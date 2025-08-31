@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"spyal/broadcasting"
 	"spyal/core"
 	"spyal/pkg/utils/metrics"
 	"time"
@@ -31,7 +32,7 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 // TrackMetrics wraps an http.Handler and observes Prometheus metrics.
 func TrackMetrics(m *metrics.Metrics, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if core.IsWebSocketRequest(r) {
+		if broadcasting.IsWebSocketRequest(r) {
 			next.ServeHTTP(w, r)
 			return
 		}

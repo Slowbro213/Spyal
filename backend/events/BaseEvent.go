@@ -2,22 +2,21 @@ package events
 
 import "spyal/contracts"
 
-type Event struct {
+type BaseEvent struct {
 	Name   contracts.EventName
 	Data   map[string]any
 }
 
-func NewEvent(name contracts.EventName,data map[string]any) *Event {
-	return &Event{
-		Name: name,
+func NewBaseEvent(data map[string]any) contracts.Event {
+	return &BaseEvent{
 		Data: data,
 	}
 }
 
-func (e *Event) GetName() contracts.EventName {
-	return e.Name
+func (e *BaseEvent) GetName() contracts.EventName {
+	return Baseevent
 }
 
-func (e *Event) GetData() map[string]any {
+func (e *BaseEvent) GetData() map[string]any {
 	return e.Data
 }

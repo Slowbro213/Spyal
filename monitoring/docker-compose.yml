@@ -45,5 +45,17 @@ services:
       - /etc/machine-id:/etc/machine-id:ro
     command: -config.file=/etc/promtail/config.yml
 
+  pyroscope:
+    image: grafana/pyroscope:1.9.0
+    container_name: pyroscope
+    ports:
+      - "4040:4040"
+    network_mode: host
+    environment:
+      - PYROSCOPE_LOG_LEVEL=debug
+      - PYROSCOPE_STORAGE_PATH=/var/lib/pyroscope
+    volumes:
+      - ./pyroscope/data:/var/lib/pyroscope
+
 volumes:
   grafana-data:

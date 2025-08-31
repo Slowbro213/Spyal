@@ -1,17 +1,27 @@
 package events
 
-import "spyal/contracts"
+import (
+	"spyal/contracts"
+)
 
 
 type EchoEvent struct {
-	Event
+	BaseEvent
 }
 
-func NewEchoEvent(data map[string]any) contracts.Eventer{
+func NewEchoEvent(data map[string]any) contracts.Event{
 	return &EchoEvent{
-		Event: Event{
-			Name: Echoevent,
+		BaseEvent: BaseEvent{
 			Data: data,
 		},
 	}
+}
+
+
+func (ee *EchoEvent) GetName() contracts.EventName {
+	return Echoevent
+}
+
+func (ee *EchoEvent) Channel() string{
+	return "echo"
 }

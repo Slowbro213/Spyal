@@ -32,7 +32,7 @@ func InitMsgHub() error {
 	return nil
 }
 
-func Dispatch(e contracts.Eventer) {
+func Dispatch(e contracts.Event) {
 	echan := Hub.GetHub(e.GetName())
 
 	echan <- e.GetData()

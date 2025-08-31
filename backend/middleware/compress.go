@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"net/http"
+	"spyal/broadcasting"
 	"spyal/core"
 	"strings"
 
@@ -35,7 +36,7 @@ func MinifyGzipMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if core.IsWebSocketRequest(r) {
+		if broadcasting.IsWebSocketRequest(r) {
 			next.ServeHTTP(w, r)
 			return
 		}

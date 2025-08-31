@@ -7,17 +7,17 @@ import (
 
 
 const (
+	Baseevent contracts.EventName = iota
 	Echoevent contracts.EventName = iota
-	Testevent contracts.EventName = iota
 	EventNameCount
 )
 
 func GetEventName(e contracts.EventName) string {
 	switch e {
+	case Baseevent:
+		return "Baseevent"
 	case Echoevent:
 		return "Echoevent"
-	case Testevent:
-		return "Testevent"
 	case EventNameCount:
 		return "Count"
 	default:

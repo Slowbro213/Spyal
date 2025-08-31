@@ -5,8 +5,15 @@ import (
 	"spyal/tooling"
 )
 
+const (
+	listenersDir = "listeners"
+	eventsDir = "events"
+	channelsDir = "channels"
+)
+
+//gosec:disable G101 -- This is a false positive
 func main() {
-	dirs := [1]string{"listeners"}
+	dirs := [1]string{listenersDir}
 
 	for _, dir := range dirs {
 		constructors, err := tooling.GetConstructors(dir)
@@ -21,15 +28,28 @@ func main() {
 		}
 	}
 
-	events, err := tooling.GetEventTypes("events")
+	events, err := tooling.GetEventTypes(eventsDir)
 
 	if err != nil {
 		log.Fatalf("Error while getting events %v", err)
 	}
 
-	err = tooling.GenerateEventTypes("events", events)
+	err = tooling.GenerateEventTypes(eventsDir, events)
 
 	if err != nil {
-		log.Fatalf("Error while generating events %v", err)
+		log.Fatalf("Error while generating events registry %v", err)
+	}
+
+
+	channels, err := tooling.GetChannelConstructors(channelsDir)
+
+	if err != nil {
+		log.Fatalf("Error while getting channels %v", err)
+	}
+
+	err = tooling.GenerateChannelRegistryFile(channelsDir,channels)
+
+	if err != nil {
+		log.Fatalf("Error while generating channels registry %v", err)
 	}
 }

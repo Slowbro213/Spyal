@@ -36,11 +36,14 @@ check:
 # 🏗️ Build frontend
 build:
 	cd frontend && bun run build
+	cd backend && go run cmd/register/main.go
 
 # 🚀 Run backend dev server
 dev:
-	cd backend && go run cmd/register/main.go
-	cd backend/cmd/server && go run main.go
+	trap 'kill -TERM $$BACKEND_PID $$FRONTEND_PID 2>/dev/null; wait; exit 0' INT TERM EXIT; \
+	cd backend && air & BACKEND_PID=$$!; \
+	cd frontend && bun run dev & FRONTEND_PID=$$!; \
+	wait
 
 # 🐳 Build Docker image
 docker-build:
@@ -48,7 +51,7 @@ docker-build:
 
 # 🐳 Run Docker container with env file
 docker-run:
-	docker run \
+	docker run --rm\
 		--env-file .env.production \
 		-p 8080:8080 \
 		-v /var/log/alspy.log:/var/log/alspy.log \

@@ -2,5 +2,5 @@ package core
 
 import "go.uber.org/zap"
 
-//nolint
+//nolint:gochecknoglobals
 var Logger *zap.Logger

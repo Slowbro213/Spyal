@@ -1,9 +1,12 @@
 # ─── Backend Stage ───────────────────────────────────────────────
-FROM golang:1.24.4 AS backend
+FROM golang:1.25.0 AS backend
 WORKDIR /app
 COPY backend ./backend
 WORKDIR /app/backend
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w" \
+    -a -installsuffix cgo \
+    -o /app/server ./cmd/server
 
 # ─── Frontend Stage ──────────────────────────────────────────────
 FROM oven/bun:canary AS bun
@@ -27,7 +30,7 @@ COPY --from=backend /app/server ./server
 # Copy static frontend assets
 COPY --from=bun /frontend/public ./public
 COPY --from=bun /frontend/views ./views
-
+USER 1000:1000
 # Expose port (optional, if server binds to 8080)
 EXPOSE 8080
 

@@ -3,6 +3,9 @@ package broadcasting
 import (
 	"net/http"
 	"os"
+	"fmt"
+	"errors"
+	"encoding/json"
 	"spyal/channels"
 	"spyal/contracts"
 	"spyal/core"
@@ -89,16 +92,42 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 }
 
 
+
 func poke(ctx context.Context, conn contracts.WSConnection) error {
+	// Read the payload from the connection
 	payload, err := conn.Read(ctx)
 	if err != nil {
 		return err
 	}
 
-	data := map[string]any{"msg": string(payload)}
-	event := events.NewEchoEvent(data)
-	go core.Dispatch(event)
-	err = Broadcast(event)
+	// Decode JSON into a generic map
+	var msg map[string]any
+	if err := json.Unmarshal(payload, &msg); err != nil {
+		return fmt.Errorf("invalid JSON: %w", err)
+	}
 
+	// Extract "type" field and cast to EventName
+	rawType, ok := msg["type"]
+	if !ok {
+		return errors.New("missing type field in message")
+	}
+
+	var eventType contracts.EventName
+	switch v := rawType.(type) {
+	case float64:
+		eventType = contracts.EventName(int(v))
+	case int:
+		eventType = contracts.EventName(v)
+	default:
+		return fmt.Errorf("invalid type field: %T", rawType)
+	}
+
+	event := events.NewEvent(eventType, msg)
+	if event == nil {
+		return fmt.Errorf("unknown event type: %d", eventType)
+	}
+
+	go core.Dispatch(event)
 	return err
 }
+

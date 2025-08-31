@@ -4,7 +4,7 @@ package contracts
 
 type Listener interface {
 	GetEventName() EventName
-	Handle(map[string]any)
+	Handle(Event)
 }
 
 type NewListenerFunc func() Listener

@@ -2,16 +2,16 @@ package tooling
 
 import (
 	"errors"
-	"os"
 	"fmt"
-	"path/filepath"
-	"strings"
-	"text/template"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"os"
+	"path/filepath"
+	"strings"
+	"text/template"
 )
 
 type RegistryData struct {
@@ -119,7 +119,7 @@ func GetEventTypes(dir string) ([]string, error) {
 //gosec:disable
 func GenerateEventTypes(dir string, events []string) error {
 	if len(events) == 0 {
-		return errors.New("no evenets provided")
+		return errors.New("no events provided")
 	}
 
 	f, err := os.Create(filepath.Join(dir, "registry.go"))
@@ -128,11 +128,13 @@ func GenerateEventTypes(dir string, events []string) error {
 	}
 	defer f.Close()
 
-	// Title-case each event for enum naming
 	c := cases.Title(language.English)
 	var enumNames []string
+	mappings := make(map[string]string)
 	for _, e := range events {
-		enumNames = append(enumNames, c.String(e))
+		name := c.String(e)
+		enumNames = append(enumNames, name)
+		mappings[name] = e
 	}
 
 	tmpl := generatedCodeMsg + `
@@ -140,35 +142,37 @@ package events
 
 import (
 	"spyal/contracts"
-	)
-
-
-const (
-{{- range .EnumNames }}
-	{{ . }} contracts.EventName = iota
-{{- end }}
-	EventNameCount
 )
 
-func GetEventName(e contracts.EventName) string {
-	switch e {
+
+// constants
+const (
 {{- range .EnumNames }}
-	case {{ . }}:
-		return "{{ . }}"
+    {{ . }} contracts.EventName = iota
 {{- end }}
-	case EventNameCount:
-		return "Count"
+    EventNameCount
+)
+
+// NewEvent returns the constructor of the event by its EventName
+func NewEvent(name contracts.EventName, data map[string]any) contracts.Event {
+	switch name {
+{{- range $key, $val := .EventMap }}
+	case {{ $key }}:
+		return New{{ $val }}(data)
+{{- end }}
 	default:
-		return "Unknown"
+		return nil
 	}
 }
 `
 
 	t := template.Must(template.New("registry").Parse(tmpl))
 	return t.Execute(f, struct {
-		EnumNames []string
+		EnumNames  []string
+		EventMap map[string]string
 	}{
-		EnumNames: enumNames,
+		EnumNames:  enumNames,
+		EventMap: mappings,
 	})
 }
 

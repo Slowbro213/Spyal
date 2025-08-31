@@ -12,8 +12,8 @@ func Listen(l contracts.Listener) error {
 		return errors.New("Channel " + strconv.Itoa(int(l.GetEventName())) + " is null")
 	}
 	go func() {
-		for data := range echan {
-			l.Handle(data)
+		for e := range echan {
+			l.Handle(e)
 		}
 	}()
 	return nil

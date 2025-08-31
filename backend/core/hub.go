@@ -6,10 +6,10 @@ import (
 )
 
 type MsgHub struct {
-	hubs []chan map[string]any
+	hubs []chan contracts.Event
 }
 
-func (mh *MsgHub) GetHub(e contracts.EventName) chan map[string]any {
+func (mh *MsgHub) GetHub(e contracts.EventName) chan contracts.Event {
 	return mh.hubs[e]
 }
 
@@ -22,11 +22,11 @@ func InitMsgHub() error {
 	}
 
 	Hub = &MsgHub{
-		hubs: make([]chan map[string]any, int(events.EventNameCount)),
+		hubs: make([]chan contracts.Event, int(events.EventNameCount)),
 	}
 
 	for i := range int(events.EventNameCount) {
-		Hub.hubs[i] = make(chan map[string]any)
+		Hub.hubs[i] = make(chan contracts.Event)
 	}
 
 	return nil
@@ -35,5 +35,5 @@ func InitMsgHub() error {
 func Dispatch(e contracts.Event) {
 	echan := Hub.GetHub(e.GetName())
 
-	echan <- e.GetData()
+	echan <- e
 }

@@ -3,24 +3,24 @@ package events
 
 import (
 	"spyal/contracts"
-	)
-
-
-const (
-	Baseevent contracts.EventName = iota
-	Echoevent contracts.EventName = iota
-	EventNameCount
 )
 
-func GetEventName(e contracts.EventName) string {
-	switch e {
+
+// constants
+const (
+    Baseevent contracts.EventName = iota
+    Echoevent contracts.EventName = iota
+    EventNameCount
+)
+
+// NewEvent returns the constructor of the event by its EventName
+func NewEvent(name contracts.EventName, data map[string]any) contracts.Event {
+	switch name {
 	case Baseevent:
-		return "Baseevent"
+		return NewBaseEvent(data)
 	case Echoevent:
-		return "Echoevent"
-	case EventNameCount:
-		return "Count"
+		return NewEchoEvent(data)
 	default:
-		return "Unknown"
+		return nil
 	}
 }

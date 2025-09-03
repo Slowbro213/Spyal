@@ -42,12 +42,30 @@ build:
 dev:
 	trap 'kill -TERM $$BACKEND_PID $$FRONTEND_PID 2>/dev/null; wait; exit 0' INT TERM EXIT; \
 	cd backend && air & BACKEND_PID=$$!; \
-	cd frontend && bun run dev & FRONTEND_PID=$$!; \
+	cd frontend && bun run build && bun run dev & FRONTEND_PID=$$!; \
 	wait
+
+set-domain:
+	@echo "🔍 Detecting current machine IP..."
+	@IP=$$(if command -v ip &> /dev/null; then \
+	        ip route get 1 | awk '{print $$7; exit}'; \
+	    elif command -v ifconfig &> /dev/null; then \
+	        ifconfig | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $$2}' | head -n1; \
+	    else \
+	        echo ""; \
+	    fi); \
+	if [ -z "$$IP" ]; then \
+	    echo "❌ Could not detect IP"; \
+	    exit 1; \
+	fi; \
+	echo "🖧 Detected IP: $$IP"; \
+	sed -i.bak -E "s|^DOMAIN=.*$$|DOMAIN=$$IP:8080|" .env.public; \
+	echo "✅ Updated DOMAIN in .env.public to $$IP:8080"
+
 
 # 🐳 Build Docker image
 docker-build:
-	docker build -t alspy .
+	docker build -t spyal .
 
 # 🐳 Run Docker container with env file
 docker-run:
@@ -55,7 +73,7 @@ docker-run:
 		--env-file .env.production \
 		-p 8080:8080 \
 		-v /var/log/alspy.log:/var/log/alspy.log \
-		alspy
+		spyal
 
 # 🪝 Run Lefthook manually
 precommit:

@@ -27,6 +27,7 @@ package-lock.json # optional — keep if you want reproducible builds
 .env
 .env.*
 !.env.*.example
+!.*.public
 
 # Editor & OS files
 .DS_Store
@@ -57,3 +58,6 @@ lefthook-local.yml
 
 # OS specific
 Thumbs.db
+
+# Zips
+*.zip

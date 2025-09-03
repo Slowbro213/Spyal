@@ -18,6 +18,7 @@ COPY frontend/public ./public
 COPY frontend/src ./src
 COPY frontend/views ./views
 COPY frontend/scripts ./scripts
+COPY .env.public ../.env.public
 RUN bun i -p && bun i tailwindcss @tailwindcss/cli && bun run build
 
 # ─── Final Stage ─────────────────────────────────────────────────

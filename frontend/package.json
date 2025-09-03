@@ -17,7 +17,7 @@
     "albanian"
   ],
   "scripts": {
-    "build": "bun build src/ts/main.ts --outdir=public/out --minify --target=browser && bunx tailwindcss -i public/css/styles.css -o public/out/styles.css --minify && bun run scripts/compress-assets.ts",
+    "build": "bash scripts/build/build.sh && bun build src/ts/main.ts --outdir=public/out --minify --target=browser && bunx tailwindcss -i public/css/styles.css -o public/out/styles.css --minify",
     "dev": "bun build src/ts/main.ts --outdir=public/out --watch --target=browser",
     "lint": "bunx eslint . --ext .js,.ts && bunx stylelint '**/*.css' && bunx htmlhint 'views/**/*.html' && bunx markdownlint-cli2 '**/*.md'",
     "format": "bunx prettier --write '**/*.{js,ts,css,html,md}'",

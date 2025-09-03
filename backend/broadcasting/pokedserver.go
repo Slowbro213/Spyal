@@ -127,7 +127,7 @@ func poke(ctx context.Context, conn contracts.WSConnection) error {
 		return fmt.Errorf("unknown event type: %d", eventType)
 	}
 
-	go core.Dispatch(event)
+	core.Dispatch(event)
 	return err
 }
 

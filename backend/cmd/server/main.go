@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"spyal/core"
+	"spyal/db"
 	"spyal/pkg/pages"
 	"spyal/pkg/utils/logger"
 	"spyal/pkg/utils/metrics"
@@ -34,7 +35,7 @@ func loadEnv() {
 	}
 }
 
-func inits() (*zap.Logger, *metrics.Metrics) {
+func inits() (*zap.Logger, *metrics.Metrics, *db.DB) {
 	pyroscopeURL := os.Getenv("PYROSCOPE_URL")
 	myLogger, err := logger.NewLogger()
 	if err != nil {
@@ -58,15 +59,27 @@ func inits() (*zap.Logger, *metrics.Metrics) {
 			pyroscope.ProfileAllocSpace,
 			pyroscope.ProfileInuseObjects,
 			pyroscope.ProfileInuseSpace,
+			pyroscope.ProfileGoroutines,
 		},
 	})
 
 	if err != nil {
-		myLogger.Error("Error while Initing Pages: ", zap.Error(err))
-		log.Fatalf("Error loading Initing Pages: %v", err)
+		myLogger.Error("Error while Initing Pyroscope: ", zap.Error(err))
+		log.Fatalf("Error loading Initing Pyroscope: %v", err)
 	}
 
-	return myLogger, metrics
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		log.Fatal("DATABASE_URL not set")
+	}
+
+
+	database, err := db.Connect(db.Config{DSN: dsn})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return myLogger, metrics, database
 }
 
 func startServer(handler http.Handler) {
@@ -91,9 +104,10 @@ func startServer(handler http.Handler) {
 func main() {
 	loadEnv()
 
-	myLogger, metrics := inits()
+	myLogger, metrics, database := inits()
+	defer database.Close()
 
-	handler := Routes(myLogger, metrics)
+	handler := Routes(myLogger, metrics,database)
 
 	startServer(handler)
 }

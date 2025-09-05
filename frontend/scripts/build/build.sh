@@ -11,7 +11,7 @@ success_msg() {
     echo "✅ $1"
 }
 
-ENV_FILE="../../../.env.public"
+ENV_FILE="../.env.public"
 if [[ -f "$ENV_FILE" ]]; then
     echo "📄 Loading environment variables from $ENV_FILE"
     # Export all non-comment variables

@@ -1,111 +1,81 @@
 {{ define "base" }}
 <!doctype html>
 <html lang="sq">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Spyfall Shqip - Loja më argëtuese e fshehjes dhe zbulimit për shokë dhe familje!"
-    />
-    <meta
-      name="keywords"
-      content="Spyfall, lojë, deduktim, mashtim, Shqipëri, argëtim"
-    />
-    <meta name="author" content="Spyfall AL" />
-    <title>{{ block "title" . }}Spyfall Shqip{{ end }}</title>
-    <link rel="stylesheet" href="/public/out/styles.css" />
-    <script>
-      window.STAGE = '{{.Stage}}';
-    </script>
-  </head>
 
-  <body class="flex flex-col min-h-screen">
-    <toast-service id="toast-service"></toast-service>
-    <header>
-      <nav class="flex items-center justify-between px-4 py-4 md:px-8">
-        <smart-link href="/" class="flex items-center space-x-2">
-          <span class="text-3xl">🕵️</span>
-          <span class="text-2xl font-bold text-emerald-400">Spyfall AL</span>
-        </smart-link>
-        <button
-          id="menu-toggle"
-          type="button"
-          class="md:hidden text-3xl text-gray-300 hover:text-emerald-400 focus:outline-none"
-        >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Spyfall Shqip - Loja më argëtuese e fshehjes dhe zbulimit për shokë dhe familje!" />
+  <meta name="keywords" content="Spyfall, lojë, deduktim, mashtim, Shqipëri, argëtim" />
+  <meta name="author" content="Spyfall AL" />
+  <title>{{ block "title" . }}Spyfall Shqip{{ end }}</title>
+  <link rel="stylesheet" href="/public/out/styles.css" />
+  <script>
+    window.STAGE = '{{.Stage}}';
+  </script>
+</head>
+
+<body class="flex flex-col min-h-screen">
+  <toast-service id="toast-service"></toast-service>
+  <header>
+    <nav class="flex items-center justify-between px-4 py-4 md:px-8">
+      <smart-link href="/" class="flex items-center space-x-2">
+        <span class="text-3xl">🕵️</span>
+        <span class="text-2xl font-bold text-emerald-400">Spyfall AL</span>
+      </smart-link>
+
+      <div class="hidden md:flex md:items-center md:space-x-6">
+        <a href="/#veçoritë" class="hover:text-emerald-400 transition-colors">Veçoritë</a>
+        <a href="/#si-luhet" class="hover:text-emerald-400 transition-colors">Si luhet?</a>
+        <login-button></login-button>
+      </div>
+
+      <div class="md:hidden flex items-center">
+        <button id="menu-toggle" type="button" class="text-3xl text-gray-300 hover:text-emerald-400 focus:outline-none"
+          aria-label="Toggle menu">
           ☰
         </button>
-        <div id="menu" class="hidden md:flex md:items-center md:space-x-6">
-          <a href="/#veçoritë" class="hover:text-emerald-400 transition-colors"
-            >Veçoritë</a
-          >
-          <a href="/#si-luhet" class="hover:text-emerald-400 transition-colors"
-            >Si luhet?</a
-          >
-        </div>
+      </div>
 
-        <div
-          id="mobile-menu"
-          class="hidden md:hidden absolute top-16 left-0 w-full z-50 bg-[var(--background-dark)]/90 backdrop-blur-lg border-t border-[var(--border-accent)]/30 shadow-2xl px-6 py-5 flex flex-col space-y-4 rounded-b-2xl transition-all duration-300"
-        >
-          <a
-            href="/#veçoritë"
-            class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200"
-          >
-            Veçoritë
-          </a>
+      <div id="mobile-menu"
+        class="hidden md:hidden absolute top-16 left-0 w-full z-50 bg-[var(--background-dark)]/90 backdrop-blur-lg border-t border-[var(--border-accent)]/30 shadow-2xl px-6 py-5 flex flex-col space-y-4 rounded-b-2xl transition-all duration-300">
+        <a href="/#veçoritë"
+          class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200">
+          Veçoritë
+        </a>
 
-          <a
-            href="/#si-luhet"
-            class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200"
-          >
-            Si luhet?
-          </a>
-        </div>
-      </nav>
-    </header>
+        <a href="/#si-luhet"
+          class="block text-lg font-semibold text-[var(--text-secondary)] hover:text-[var(--primary-teal)] focus:text-[var(--primary-teal)] hover:bg-[var(--primary-teal-dark)]/15 focus:bg-[var(--primary-teal-dark)]/15 rounded-xl px-4 py-3 transition-all duration-200">
+          Si luhet?
+        </a>
 
-    <main id="content" class="flex-grow">{{ block "content" . }}{{ end }}</main>
+       
+        <login-button></login-button>
 
-    <footer class="mt-auto bg-gray-900">
-      <div class="container mx-auto px-4 py-12">
-        <div class="flex flex-col items-center space-y-6">
-          <div class="flex space-x-8">
-            <a
-              href="https://facebook.com"
-              class="social-icon hover:text-[var(--primary-teal)]"
-              aria-label="Facebook"
-            >
-              <!-- Facebook SVG (inline, local) -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-7 h-7"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M22.675 0h-21.35C.595 0 0 .595 0 1.326v21.348C0 23.405.595 24 1.326
+      </div>
+    </nav>
+  </header>
+
+  <main id="content" class="flex-grow">{{ block "content" . }}{{ end }}</main>
+
+  <footer class="mt-auto bg-gray-900">
+    <div class="container mx-auto px-4 py-12">
+      <div class="flex flex-col items-center space-y-6">
+        <div class="flex space-x-8">
+          <a href="https://facebook.com" class="social-icon hover:text-[var(--primary-teal)]" aria-label="Facebook">
+            <!-- Facebook SVG (inline, local) -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M22.675 0h-21.35C.595 0 0 .595 0 1.326v21.348C0 23.405.595 24 1.326
     24h11.495v-9.294H9.691V11.01h3.13V8.309c0-3.1 1.893-4.788
     4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504
     0-1.797.715-1.797 1.763v2.312h3.587l-.467 3.696h-3.12V24h6.116C23.405
-    24 24 23.405 24 22.674V1.326C24 .595 23.405 0 22.675 0"
-                />
-              </svg>
-            </a>
-            <a
-              href="https://twitter.com"
-              class="social-icon hover:text-[var(--secondary-coral)]"
-              aria-label="Twitter"
-            >
-              <!-- Twitter SVG -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-7 h-7"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M24 4.557a9.83 9.83 0 01-2.828.775
+    24 24 23.405 24 22.674V1.326C24 .595 23.405 0 22.675 0" />
+            </svg>
+          </a>
+          <a href="https://twitter.com" class="social-icon hover:text-[var(--secondary-coral)]" aria-label="Twitter">
+            <!-- Twitter SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 4.557a9.83 9.83 0 01-2.828.775
     4.932 4.932 0 002.165-2.724c-.951.555-2.005.959-3.127
     1.184-.897-.959-2.178-1.555-3.594-1.555-2.72
     0-4.924 2.206-4.924 4.926 0 .386.045.763.127
@@ -118,60 +88,45 @@
     2.105-.395 0-.779-.023-1.158-.067C2.29
     21.292 5.021 22 7.88 22c9.426 0
     14.591-7.809 14.591-14.591 0-.22-.004-.439-.015-.657A10.397
-    10.397 0 0024 4.557z"
-                />
-              </svg>
-            </a>
-            <a
-              href="https://instagram.com"
-              class="social-icon hover:text-[var(--accent-violet)]"
-              aria-label="Instagram"
-            >
-              <!-- Instagram SVG -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
-                />
-              </svg>
-            </a>
-          </div>
-          <div
-            class="w-24 h-px bg-gradient-to-r from-[var(--primary-teal)] to-[var(--secondary-coral)]"
-          ></div>
-          <p class="text-md text-[var(--text-secondary)] font-semibold">
-            Krijuar me
-            <span class="text-[var(--secondary-coral)] animate-pulse md:mr-2"
-              >♥
-            </span>
-            në Shqipëri — © 2025 Spyfall AL
-          </p>
-          <p class="text-xs text-[var(--text-secondary)]">
-            Të gjitha të drejtat e rezervuara • Versioni 2.0
-          </p>
+    10.397 0 0024 4.557z" />
+            </svg>
+          </a>
+          <a href="https://instagram.com" class="social-icon hover:text-[var(--accent-violet)]" aria-label="Instagram">
+            <!-- Instagram SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+            </svg>
+          </a>
         </div>
+        <div class="w-24 h-px bg-gradient-to-r from-[var(--primary-teal)] to-[var(--secondary-coral)]"></div>
+        <p class="text-md text-[var(--text-secondary)] font-semibold">
+          Krijuar me
+          <span class="text-[var(--secondary-coral)] animate-pulse md:mr-2">♥
+          </span>
+          në Shqipëri — © 2025 Spyfall AL
+        </p>
+        <p class="text-xs text-[var(--text-secondary)]">
+          Të gjitha të drejtat e rezervuara • Versioni 2.0
+        </p>
       </div>
-    </footer>
+    </div>
+  </footer>
 
-    <script>
-      const menuToggle = document.getElementById('menu-toggle');
-      const mobileMenu = document.getElementById('mobile-menu');
-      menuToggle.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuToggle.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+    mobileMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
       });
-      // Close mobile menu when clicking a link
-      mobileMenu.querySelectorAll('a').forEach((link) => {
-        link.addEventListener('click', () => {
-          mobileMenu.classList.add('hidden');
-        });
-      });
-    </script>
-    <script type="module" src="/public/out/main.js" defer></script>
-  </body>
+    });
+  </script>
+  <script type="module" src="/public/out/main.js" defer></script>
+</body>
+
 </html>
 {{ end }}

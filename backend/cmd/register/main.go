@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"spyal/tooling"
+	"spyal/tooling/register"
 )
 
 const (
@@ -16,38 +16,38 @@ func main() {
 	dirs := [1]string{listenersDir}
 
 	for _, dir := range dirs {
-		constructors, err := tooling.GetConstructors(dir)
+		constructors, err := register.GetListenerConstructors(dir)
 
 		if err != nil {
 			log.Fatalf("Error getting constructors %v", err)
 		}
 
-		err = tooling.GenerateConstructorRegistry(dir, constructors)
+		err = register.GenerateListenerRegistry(dir, constructors)
 		if err != nil {
 			log.Fatalf("Error generating constructor registry %v", err)
 		}
 	}
 
-	events, err := tooling.GetEventTypes(eventsDir)
+	events, err := register.GetEventTypes(eventsDir)
 
 	if err != nil {
 		log.Fatalf("Error while getting events %v", err)
 	}
 
-	err = tooling.GenerateEventTypes(eventsDir, events)
+	err = register.GenerateEventTypes(eventsDir, events)
 
 	if err != nil {
 		log.Fatalf("Error while generating events registry %v", err)
 	}
 
 
-	channels, err := tooling.GetChannelConstructors(channelsDir)
+	channels, err := register.GetChannelConstructors(channelsDir)
 
 	if err != nil {
 		log.Fatalf("Error while getting channels %v", err)
 	}
 
-	err = tooling.GenerateChannelRegistryFile(channelsDir,channels)
+	err = register.GenerateChannelRegistryFile(channelsDir,channels)
 
 	if err != nil {
 		log.Fatalf("Error while generating channels registry %v", err)

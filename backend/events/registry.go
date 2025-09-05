@@ -5,7 +5,6 @@ import (
 	"spyal/contracts"
 )
 
-
 // constants
 const (
     Baseevent contracts.EventName = iota

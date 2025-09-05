@@ -1,49 +1,32 @@
-import { Config, Staging } from '@alspy/config';
+import { poker } from '@alspy/poke';
+import { EventName } from '@alspy/poke/types';
 import { log } from '@alspy/spa';
+import type { Channel } from '@alspy/poke';
 
-let socket: WebSocket;
+let echoChann: Channel;
+let running = true;
 
 export const pageRoomInit = () => {
-  // Create a WebSocket connection
-  const protocol = Config.STAGE === Staging.Production ? 'wss' : 'ws';
-  const path = '/echo';
-  socket = new WebSocket(
-    `${protocol}://192.168.1.23:8080${path}`,
-    ['poked'] // Subprotocol array
-  );
+  echoChann = poker.channel("echo");
 
-  // Event listeners for connection events
-  socket.addEventListener('open', (event) => {
-    console.log('WebSocket connection opened:', event);
-    socket.send('Hello, server!'); // Send a message to the server
+  echoChann.spy(EventName.Echoevent, (event: any) => {
+    log({ level: "info", msg: `listened! msg is: ${event.msg}` });
   });
 
-  socket.addEventListener('message', (event) => {
-    console.log('Received message:', event.data);
-  });
-
-  socket.addEventListener('close', (event) => {
-    console.log('WebSocket connection closed:', event);
-  });
-
-  socket.addEventListener('error', (event) => {
-    console.error('WebSocket error:', event);
-  });
-
-  socket.onclose = () => {
-    log({
-      level: 'info',
-      msg: 'Game: User Left',
-    });
-  };
+  running = true;
+  (async () => {
+    while (running) {
+      echoChann.poke(EventName.Echoevent, { msg: "Hello! This should be echoed" });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  })();
 };
 
 export const pageRoomDestroy = () => {
-  const normalClosureCode = 1000;
-
-  socket.close(normalClosureCode, 'User Left the Game');
+  running = false;
+  echoChann.close();
 };
 
 export const pageRoomCache = (): number => {
-  return -1; // Never cache this page!!
+  return -1;
 };

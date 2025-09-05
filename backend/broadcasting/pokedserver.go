@@ -82,8 +82,10 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 		cancel()
 
 		if websocket.CloseStatus(err) == websocket.StatusNormalClosure {
+			chann.Leave(conn)
 			return
 		}
+
 		if err != nil {
 			ps.Log.Error("connection error with "+conn.RemoteAddr(), zap.Error(err))
 			return
@@ -94,19 +96,16 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 
 
 func poke(ctx context.Context, conn contracts.WSConnection) error {
-	// Read the payload from the connection
 	payload, err := conn.Read(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Decode JSON into a generic map
 	var msg map[string]any
 	if err := json.Unmarshal(payload, &msg); err != nil {
 		return fmt.Errorf("invalid JSON: %w", err)
 	}
 
-	// Extract "type" field and cast to EventName
 	rawType, ok := msg["type"]
 	if !ok {
 		return errors.New("missing type field in message")

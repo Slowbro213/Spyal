@@ -12,10 +12,9 @@ import (
 	"go.uber.org/zap"
 )
 
-const broadcastTimeout = 10 // seconds
+const broadcastTimeout = 10
 
 func Broadcast(e contracts.Event) error {
-	// If the event implements ShouldBroadcast, call Broadcast
 	b, ok := e.(contracts.ShouldBroadcast)
 	if !ok {
 		return errors.New("event not broadcastable")
@@ -27,15 +26,12 @@ func Broadcast(e contracts.Event) error {
 	chann := channels.Channels[channelName]
 	conns := chann.WSConnections()
 
-	// Prepare the payload to send (for simplicity, just JSON)
 	payload, err := json.Marshal(data)
 	if err != nil {
 	    return err
 	}
 
-	// Iterate over all connections
 	for _, wsc := range conns {
-		// Wrap with context for timeout
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*broadcastTimeout)
 		err := wsc.Write(ctx, payload)
 		cancel()

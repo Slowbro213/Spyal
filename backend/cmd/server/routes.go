@@ -10,15 +10,17 @@ import (
 	"spyal/bootstrap"
 	"spyal/broadcasting"
 	"spyal/core"
+	"spyal/db"
 	"spyal/handlers"
 	"spyal/middleware"
 	"spyal/pkg/utils/metrics"
+	"spyal/repos"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
 
-func Routes(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
+func Routes(myLogger *zap.Logger, metrics *metrics.Metrics, database *db.DB) http.Handler {
 	publicDir := os.Getenv("PUBLIC_DIR")
 	viewsDir := os.Getenv("VIEWS_DIR")
 	username := os.Getenv("USERNAME")
@@ -28,6 +30,9 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 	gh := handlers.NewGameHandler(myLogger)
 	rh := handlers.NewRoomHandler(myLogger)
 	lh := handlers.NewLogHandler(myLogger)
+
+	userRepo := repos.NewUserRepo(database)
+	uh := handlers.NewUserHandler(myLogger,userRepo)
 
 	router := core.NewRouter()
 
@@ -40,6 +45,9 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 		}
 		hh.HomePage(w, r)
 	})
+
+	router.Post("/login", middleware.GuestMiddleware(http.HandlerFunc(uh.LoginOrRegister)).ServeHTTP)
+	router.Post("/logout", middleware.GuestMiddleware(http.HandlerFunc(uh.Logout)).ServeHTTP)
 
 	router.Get("/create", gh.CreateGamePage)
 	router.Get("/create/remote", gh.CreateRemoteGamePage)
@@ -72,7 +80,7 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics) http.Handler {
 		log.Fatalf("Error initializing %v", err)
 	}
 
-	router.Get("/echo", eServer.StartWSServer)
+	router.Get("/poked", eServer.StartWSServer)
 
 	handler := middleware.MinifyGzipMiddleware(router)
 	handler = middleware.TrackMetrics(metrics, handler)

@@ -31,7 +31,7 @@ func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("password")
 
 	if username == "" || password == "" {
-		http.Error(w, "username and password required", http.StatusBadRequest)
+		http.Error(w, "Username and Password required", http.StatusBadRequest)
 		return
 	}
 
@@ -45,7 +45,7 @@ func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, "Sorry, something went wrong!", http.StatusInternalServerError)
 			uh.Log.Error("error hashing password", zap.Error(err))
 			return
 		}
@@ -56,7 +56,7 @@ func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := uh.userRepository.Create(ctx, user); err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, "Sorry, something went wrong!", http.StatusInternalServerError)
 			uh.Log.Error("error creating user", zap.Error(err))
 			return
 		}

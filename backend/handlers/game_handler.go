@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"encoding/json"
-	"go.uber.org/zap"
 	"net/http"
+	"spyal/cache"
 	"spyal/core"
-	"spyal/db"
 	"spyal/pkg/pages"
-	"spyal/pkg/game"
-	"spyal/pkg/utils/room"
 	"spyal/pkg/utils/renderer"
+	"spyal/pkg/utils/room"
+
+	"go.uber.org/zap"
 )
 
 type GameHandler struct {
@@ -67,16 +67,6 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 		gh.Log.Error("Error while generating Room ID: ", zap.Error(err))
 	}
 
-	game := game.Game{
-		RoomID:      roomID,
-		Players:     []string{body.Params.PlayerName},
-		RoomName:    body.Params.GameName,
-		IsPublic:    !body.Params.IsPrivate,
-		MaxPlayers:  body.Params.MaxNumbers,
-		GameStarted: false,
-		CreatedAt:   time.Now().Unix(),
-	}
-
 	gameJSON, err := json.Marshal(game)
 	if err != nil {
 		gh.Log.Error("failed to marshal game to JSON", zap.Error(err))
@@ -84,22 +74,15 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	client, err := db.GetRedis()
-	if err != nil {
-		gh.Log.Error("failed to connect to Redis", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
 	ctx := context.Background()
-	err = client.Set(ctx, "game:"+roomID, gameJSON, 0).Err()
+	err = cache.Set(ctx, "game:"+roomID, string(gameJSON), 0)
 	if err != nil {
-		gh.Log.Error("failed to store game in Redis", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		gh.Log.Error("failed to store game in Memory", zap.Error(err))
+		http.Error(w, "Sorry, there was a problem creating your game", http.StatusInternalServerError)
 		return
 	}
 
-	gh.Log.Info("stored game in Redis", zap.String("roomID", roomID))
+	gh.Log.Info("stored game in Memory", zap.String("roomID", roomID))
 
 	resp := map[string]any{"roomID": roomID}
 	w.Header().Set("Content-Type", "application/json")

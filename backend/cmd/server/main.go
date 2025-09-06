@@ -8,6 +8,7 @@ import (
 
 	"spyal/core"
 	"spyal/db"
+	"spyal/cache"
 	"spyal/pkg/pages"
 	"spyal/pkg/utils/logger"
 	"spyal/pkg/utils/metrics"
@@ -78,6 +79,8 @@ func inits() (*zap.Logger, *metrics.Metrics, *db.DB) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	cache.Init()
 
 	return myLogger, metrics, database
 }

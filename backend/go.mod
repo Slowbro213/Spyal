@@ -3,7 +3,6 @@ module spyal
 go 1.24.4
 
 require (
-	github.com/ccojocar/zxcvbn-go v1.0.4
 	github.com/coder/websocket v1.8.13
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/grafana/pyroscope-go v1.2.7
@@ -13,6 +12,7 @@ require (
 	github.com/prometheus/client_golang v1.22.0
 	github.com/redis/go-redis/v9 v9.11.0
 	github.com/tdewolff/minify/v2 v2.23.8
+	github.com/valkey-io/valkey-go v1.0.64
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.36.0
 	golang.org/x/text v0.24.0

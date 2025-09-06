@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"encoding/json"
-	"go.uber.org/zap"
 	"net/http"
+	"spyal/cache"
 	"spyal/core"
-	"spyal/db"
-	"spyal/pkg/pages"
 	"spyal/pkg/game"
+	"spyal/pkg/pages"
 	"spyal/pkg/utils/renderer"
+
+	"go.uber.org/zap"
 )
 
 type RoomHandler struct {
@@ -37,17 +38,10 @@ func (rh *RoomHandler) Show(w http.ResponseWriter, r *http.Request) {
 	}
 	roomID := parts[2]
 
-	client, err := db.GetRedis()
-	if err != nil {
-		rh.Log.Error("failed to connect to Redis", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
 	ctx := context.Background()
-	gameJSON, err := client.Get(ctx, "game:"+roomID).Result()
+	gameJSON, err := cache.Get(ctx, "game:"+roomID)
 	if err != nil {
-		rh.Log.Error("failed to get game from Redis", zap.Error(err))
+		rh.Log.Error("failed to get game from Memory", zap.Error(err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

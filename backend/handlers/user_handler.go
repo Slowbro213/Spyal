@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
-	"time"
 	"os"
+	"time"
 
 	"spyal/auth"
 	"spyal/core"
@@ -84,18 +85,26 @@ func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(`{"token":"` + token + `"}`))
-	if err != nil {
-		core.Logger.Error("error writing reponse headers: ", zap.Error(err))
+	resp := fmt.Sprintf(`{"ttl":%d}`,int(auth.TokenTTL))
+	if _, err = w.Write([]byte(resp)); err != nil {
+		uh.Log.Error("error writing response", zap.Error(err))
 	}
 }
 
 func (uh *UserHandler) Logout(w http.ResponseWriter, _ *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   os.Getenv("ENV") == "production",
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte(`{"message":"logged out successfully"}`))
-	if err != nil {
+	if _, err := w.Write([]byte(`{"message":"logged out successfully"}`)); err != nil {
 		uh.Log.Error("error writing response", zap.Error(err))
-		return
 	}
 }

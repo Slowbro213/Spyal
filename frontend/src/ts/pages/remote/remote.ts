@@ -2,7 +2,6 @@ import { client } from '@alspy/api';
 import { Importance, initToast, Level } from '@alspy/services/toast';
 import type { RemoteGameCreationResponse, RemoteGameForm } from './types';
 import { navigateToPage } from '@alspy/spa';
-import { Config } from '@alspy/config';
 
 async function handleFormSubmit(event: Event) {
   event.preventDefault();
@@ -31,12 +30,18 @@ async function handleFormSubmit(event: Event) {
     isPrivate,
   };
 
+  try {
   const response: RemoteGameCreationResponse = await client.post(
     '/create/remote',
     form
   );
 
   navigateToPage(`/room/${response.roomID}`);
+  } catch (err: any) {
+    toast.show(Level.Error,Importance.Major,{
+      message: err.message
+    })
+  }
 }
 
 export const pageRemoteInit = () => {

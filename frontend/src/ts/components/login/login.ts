@@ -131,8 +131,7 @@ export class LoginButton extends HTMLElement {
     // initialize state from storage
     const prefix = Config.TOKEN;
     const storedUser = localStorage.getItem(`${prefix}username`);
-    const storedToken = localStorage.getItem(`${prefix}token`);
-    if (storedUser && storedToken) {
+    if (storedUser) {
       this.setLoggedIn(storedUser);
     }
   }
@@ -208,8 +207,8 @@ export class LoginButton extends HTMLElement {
       }
 
       const data = await res.json().catch(() => null);
-      const token = data?.token;
-      if (!token) {
+      const ttl = data?.ttl;
+      if (!ttl) {
         toast.show(Level.Error, Importance.Major, {
           message: 'Token jo i vlefshëm nga serveri',
         });
@@ -217,20 +216,26 @@ export class LoginButton extends HTMLElement {
         this.submitBtn.textContent = 'Login';
         return;
       }
+      console.log(ttl)
 
-      // Store token + username
+
       const prefix = Config.TOKEN;
       localStorage.setItem(`${prefix}username`, username);
 
+      setTimeout(() => {
+        localStorage.removeItem(`${prefix}username`);
+        this.loggedIn = false;
+        this.buttonEl.textContent = 'Login';
+        this.buttonEl.setAttribute('aria-disabled', 'false');
+      }, ttl * 1000);
+
       this.setLoggedIn(username);
       this.closeModal();
+
     } catch (err) {
       toast.show(Level.Error, Importance.Major, {
         message: 'Gabim rrjeti — provoni përsëri',
       });
-    } finally {
-      this.submitBtn.disabled = false;
-      this.submitBtn.textContent = 'Login';
     }
   }
 

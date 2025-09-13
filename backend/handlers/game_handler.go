@@ -88,7 +88,6 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 
 	raw := ctx.Value("id")
 
-
 	userID, ok := raw.(int64)
 	if !ok {
 		gh.Log.Error("missing or malformed user id in context")
@@ -96,10 +95,26 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	rawName := ctx.Value("username")
+
+	username, ok := rawName.(string)
+	if !ok {
+		gh.Log.Error("missing or malformed username in context")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var gameName string
+	if *body.GameName != "" {
+		gameName = *body.GameName
+	} else {
+		gameName = "loja e " + username
+	}
+
 	newGame := &models.Game{
 		RoomID:     roomID,
 		HostID:     userID,
-		Name:       *body.GameName,
+		Name:       gameName,
 		SpyNumber:  body.SpyNumber,
 		MaxPlayers: body.MaxNumbers,
 		Private:    body.IsPrivate,

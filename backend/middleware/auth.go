@@ -7,7 +7,7 @@ import (
 	"spyal/auth"
 )
 
-// nolint
+//nolint
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rawToken := ""
@@ -16,13 +16,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			rawToken = c.Value
 		}
 		if rawToken == "" {
-			http.Error(w, "authorization required", http.StatusUnauthorized)
+			http.Error(w, "Duhet te logohesh", http.StatusUnauthorized)
 			return
 		}
 
 		id, username, ok := auth.VerifyToken(rawToken)
 		if !ok {
-			http.Error(w, "invalid or expired token", http.StatusUnauthorized)
+			http.Error(w, "Duhet te logohesh", http.StatusUnauthorized)
 			return
 		}
 

@@ -81,3 +81,15 @@ precommit:
 
 prepush:
 	lefthook run pre-push
+
+# 🔑 Generate and set TOKEN_SECRET in .env.production
+set-token-secret:
+	@echo "🔑 Generating secure TOKEN_SECRET..."
+	@SECRET=$$(openssl rand -hex 32); \
+	if grep -q "^TOKEN_SECRET=" .env.production; then \
+		sed -i.bak -E "s|^TOKEN_SECRET=.*$$|TOKEN_SECRET=$$SECRET|" .env.production; \
+	else \
+		echo "TOKEN_SECRET=$$SECRET" >> .env.production; \
+	fi; \
+	echo "✅ TOKEN_SECRET updated in .env.production"
+

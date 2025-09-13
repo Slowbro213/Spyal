@@ -1,4 +1,6 @@
+import { Importance } from '@alspy/services';
 import { fetchPage, loadPage } from '@alspy/spa';
+import { serveErrorPage, Severity } from '@alspy/spa/error';
 
 export class SmartLink extends HTMLElement {
   fetched = false;
@@ -32,8 +34,12 @@ export class SmartLink extends HTMLElement {
     e.preventDefault();
     const location = this.getAttribute('href');
     if (!location) return;
+    try {
     if (!this.fetched) await fetchPage(location);
     loadPage(location);
+    } catch (err) {
+      serveErrorPage(Severity.normal,"Akses i Pa Autorizuar","Ti nuk ke akses ne kete faqe!");
+    }
   }
 }
 

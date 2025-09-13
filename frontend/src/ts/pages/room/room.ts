@@ -7,17 +7,19 @@ let echoChann: Channel;
 let running = true;
 
 export const pageRoomInit = () => {
-  echoChann = poker.channel("echo");
+  echoChann = poker.channel('game', 'test');
 
   echoChann.spy(EventName.Echoevent, (event: any) => {
-    log({ level: "info", msg: `listened! msg is: ${event.msg}` });
+    log({ level: 'info', msg: `listened! msg is: ${event.msg}` });
   });
 
   running = true;
   (async () => {
     while (running) {
-      echoChann.poke(EventName.Echoevent, { msg: "Hello! This should be echoed" });
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      echoChann.poke(EventName.Echoevent, {
+        msg: 'Hello! This should be echoed',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   })();
 };

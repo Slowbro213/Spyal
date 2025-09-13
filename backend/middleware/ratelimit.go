@@ -4,7 +4,6 @@ import (
 	"net"
 	"net/http"
 	"sync"
-	"time"
 
 	"golang.org/x/time/rate"
 )
@@ -12,7 +11,6 @@ import (
 const (
 	reqPerSec = 5
 	burst     = 10
-	cleanupInterval = time.Minute * 5
 )
 
 //nolint:gochecknoglobals

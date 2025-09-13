@@ -9,4 +9,5 @@ import (
 var Channels = map[string]contracts.Channel{
     "default": NewDefaultChannel(),
     "echo": NewEchoChannel(),
+    "game": NewGameChannel(),
 }

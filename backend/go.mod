@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/coder/websocket v1.8.13
 	github.com/golang-migrate/migrate/v4 v4.19.0
+	github.com/gorilla/schema v1.4.1
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1

@@ -10,7 +10,9 @@ export const fetchPage = async (href: string) => {
   }
   try {
     const res = await fetch(href, {
-      headers: { 'X-Smart-Link': 'true' },
+      headers: {
+        'X-Smart-Link': 'true',
+      },
     });
     if (!res.ok) throw new Error(`Failed to fetch ${href}`);
     const html = await res.text();

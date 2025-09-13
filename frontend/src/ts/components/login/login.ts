@@ -1,3 +1,4 @@
+import { Config } from '@alspy/config';
 import { Importance, initToast, Level } from '@alspy/services/toast';
 
 const toast = initToast();
@@ -108,14 +109,18 @@ export class LoginButton extends HTMLElement {
   }
 
   connectedCallback() {
-    this.buttonEl = this.shadow.querySelector('.login-btn') as HTMLButtonElement;
+    this.buttonEl = this.shadow.querySelector(
+      '.login-btn'
+    ) as HTMLButtonElement;
     this.overlayEl = this.shadow.getElementById('overlay') as HTMLElement;
     this.userInput = this.shadow.getElementById('username') as HTMLInputElement;
     this.passInput = this.shadow.getElementById('password') as HTMLInputElement;
     this.submitBtn = this.shadow.getElementById('confirm') as HTMLButtonElement;
 
     this.buttonEl.addEventListener('click', this.onButtonClick.bind(this));
-    this.shadow.getElementById('cancel')!.addEventListener('click', this.closeModal.bind(this));
+    this.shadow
+      .getElementById('cancel')!
+      .addEventListener('click', this.closeModal.bind(this));
     this.overlayEl.addEventListener('click', (e) => {
       if (e.target === this.overlayEl) this.closeModal();
     });
@@ -124,8 +129,9 @@ export class LoginButton extends HTMLElement {
     this.shadow.addEventListener('keydown', this.onKeyDown.bind(this));
 
     // initialize state from storage
-    const storedUser = localStorage.getItem('auth_username');
-    const storedToken = localStorage.getItem('auth_token');
+    const prefix = Config.TOKEN;
+    const storedUser = localStorage.getItem(`${prefix}username`);
+    const storedToken = localStorage.getItem(`${prefix}token`);
     if (storedUser && storedToken) {
       this.setLoggedIn(storedUser);
     }
@@ -169,7 +175,9 @@ export class LoginButton extends HTMLElement {
     const password = this.passInput.value;
 
     if (!username || !password) {
-      toast.show(Level.Error, Importance.Major, { message: 'Plotësoni të gjitha fushat e detyrueshme!' });
+      toast.show(Level.Error, Importance.Major, {
+        message: 'Plotësoni të gjitha fushat e detyrueshme!',
+      });
       return;
     }
 
@@ -185,13 +193,15 @@ export class LoginButton extends HTMLElement {
         method: 'POST',
         body: body,
         headers: {
-          'Accept': 'application/json',
-        }
+          Accept: 'application/json',
+        },
       });
 
       if (!res.ok) {
         const txt = await res.text().catch(() => '');
-        toast.show(Level.Error, Importance.Major, { message: txt || 'Gabim gjatë autentikimit' });
+        toast.show(Level.Error, Importance.Major, {
+          message: txt || 'Gabim gjatë autentikimit',
+        });
         this.submitBtn.disabled = false;
         this.submitBtn.textContent = 'Login';
         return;
@@ -200,20 +210,24 @@ export class LoginButton extends HTMLElement {
       const data = await res.json().catch(() => null);
       const token = data?.token;
       if (!token) {
-        toast.show(Level.Error, Importance.Major, { message: 'Token jo i vlefshëm nga serveri' });
+        toast.show(Level.Error, Importance.Major, {
+          message: 'Token jo i vlefshëm nga serveri',
+        });
         this.submitBtn.disabled = false;
         this.submitBtn.textContent = 'Login';
         return;
       }
 
       // Store token + username
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_username', username);
+      const prefix = Config.TOKEN;
+      localStorage.setItem(`${prefix}username`, username);
 
       this.setLoggedIn(username);
       this.closeModal();
     } catch (err) {
-      toast.show(Level.Error, Importance.Major, { message: 'Gabim rrjeti — provoni përsëri' });
+      toast.show(Level.Error, Importance.Major, {
+        message: 'Gabim rrjeti — provoni përsëri',
+      });
     } finally {
       this.submitBtn.disabled = false;
       this.submitBtn.textContent = 'Login';

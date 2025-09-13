@@ -1,6 +1,6 @@
 -- Enums
-CREATE TYPE friend_status AS ENUM ('pending', 'accepted', 'blocked');
-CREATE TYPE game_status AS ENUM ('waiting', 'in_progress', 'finished', 'cancelled');
+CREATE TYPE friend_status AS ENUM ('pending', 'accepted');
+CREATE TYPE round_status AS ENUM ('waiting', 'in_progress', 'finished', 'cancelled');
 CREATE TYPE invite_status AS ENUM ('pending', 'accepted', 'declined');
 
 -- Tables
@@ -28,18 +28,21 @@ CREATE TABLE friends (
 
 CREATE TABLE games (
     id SERIAL PRIMARY KEY,
+    room_id VARCHAR(255) NOT NULL UNIQUE,
     host_id INT NOT NULL,
-    title TEXT NOT NULL,
+    name VARCHAR(127) NOT NULL,
+    spy_number INT NOT NULL DEFAULT 1,
+    max_players INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     private BOOLEAN NOT NULL DEFAULT FALSE,
-    status game_status NOT NULL DEFAULT 'waiting',
+    active BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_host FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE rounds (
     id SERIAL PRIMARY KEY,
     game_id INT NOT NULL,
-    status game_status NOT NULL DEFAULT 'waiting',
+    status round_status NOT NULL DEFAULT 'waiting',
     word_id INT NOT NULL,
     spy_word_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

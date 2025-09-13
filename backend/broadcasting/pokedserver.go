@@ -66,23 +66,24 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	channelName := r.URL.Query().Get("channel")
+	topic := r.URL.Query().Get("topic")
 	chann := channels.Channels[channelName]
 
 	if chann == nil {
 		return
 	}
 
-	if ok := chann.Join(conn, r); !ok {
+	if ok := chann.Join(conn,topic, r); !ok {
 		ps.Log.Warn("failed to join channel", zap.Error(err))
 	} 
 
 	for {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeOut)
-		err := poke(ctx, conn)
+		ctx, cancel := context.WithTimeout(r.Context(), time.Second*timeOut)
+		err := poke(ctx, conn,topic)
 		cancel()
 
 		if websocket.CloseStatus(err) == websocket.StatusNormalClosure {
-			chann.Leave(conn)
+			chann.Leave(conn,topic)
 			return
 		}
 
@@ -95,7 +96,7 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 
 
 
-func poke(ctx context.Context, conn contracts.WSConnection) error {
+func poke(ctx context.Context, conn contracts.WSConnection, topic string) error {
 	payload, err := conn.Read(ctx)
 	if err != nil {
 		return err
@@ -105,6 +106,8 @@ func poke(ctx context.Context, conn contracts.WSConnection) error {
 	if err := json.Unmarshal(payload, &msg); err != nil {
 		return fmt.Errorf("invalid JSON: %w", err)
 	}
+
+	msg["topic"] = topic
 
 	rawType, ok := msg["type"]
 	if !ok {

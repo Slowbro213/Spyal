@@ -2,7 +2,7 @@ import { remotePage } from './remote';
 import { roomPage } from './room';
 import type { Page } from './types';
 
-export const isCacheValid = (page: Page) => {
+export const isCacheValid = (page: Page | undefined) => {
   if (!page) return true;
   const now = Date.now();
   const cacheExpired =

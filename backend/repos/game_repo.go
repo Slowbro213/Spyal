@@ -1,38 +1,36 @@
 package repos
 
 import (
-	"context"
-	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
+	"encoding/json"
+	"context"
 
 	"github.com/jmoiron/sqlx"
-	"spyal/cache"
 	"spyal/models"
+	"spyal/cache"
 )
 
 var ErrGameNotFound = errors.New("game not found")
 
 type GameRepository interface {
-	Create(ctx context.Context, g *models.Game) error
-	GetByID(ctx context.Context, id int64) (*models.Game, error)
-	ListPublic(ctx context.Context, limit int) ([]*models.Game, error)
+	repoInterface
+	Create(context.Context,*models.Game) error
 }
 
 type gameRepo struct {
-	db sqlx.ExtContext
+	repo
 }
 
 func NewGameRepo(db sqlx.ExtContext) GameRepository {
-	return &gameRepo{db: db}
+	return &gameRepo{repo: repo{db: db}}
 }
 
 func (r *gameRepo) Create(ctx context.Context, g *models.Game) error {
 	query := `
-		INSERT INTO games (host_id, title, private, status)
-		VALUES (:host_id, :title, :private, :status)
+		INSERT INTO games (host_id, room_id, spy_number, max_players, name, private)
+		VALUES (:host_id, :room_id, :spy_number, :max_players, :name, :private)
 		RETURNING id, created_at`
 	rows, err := sqlx.NamedQueryContext(ctx, r.db, query, g)
 	if err != nil {
@@ -47,41 +45,6 @@ func (r *gameRepo) Create(ctx context.Context, g *models.Game) error {
 	}
 
 	data, _ := json.Marshal(g)
-	_ = cache.Set(ctx, g.CacheKey(), string(data), time.Hour)
+	_ = cache.Set(ctx, g.TableName() + g.RoomID, string(data), time.Hour)
 	return nil
-}
-
-func (r *gameRepo) GetByID(ctx context.Context, id int64) (*models.Game, error) {
-	key := fmt.Sprintf("game_%d", id)
-
-	if cached, err := cache.Get(ctx, key); err == nil && cached != "" {
-		var g models.Game
-		if jsonErr := json.Unmarshal([]byte(cached), &g); jsonErr == nil {
-			return &g, nil
-		}
-	}
-
-	var g models.Game
-	err := sqlx.GetContext(ctx, r.db, &g,
-		`SELECT id, host_id, title, created_at, private, status FROM games WHERE id=$1`, id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrGameNotFound
-		}
-		return nil, fmt.Errorf("get game by id: %w", err)
-	}
-
-	data, _ := json.Marshal(g)
-	_ = cache.Set(ctx, key, string(data), time.Hour)
-	return &g, nil
-}
-
-func (r *gameRepo) ListPublic(ctx context.Context, limit int) ([]*models.Game, error) {
-	var gg []*models.Game
-	err := sqlx.SelectContext(ctx, r.db, &gg,
-		`SELECT * FROM games WHERE private=false ORDER BY created_at DESC LIMIT $1`, limit)
-	if err != nil {
-		return nil, fmt.Errorf("list public games: %w", err)
-	}
-	return gg, nil
 }

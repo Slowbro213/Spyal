@@ -1,66 +1,137 @@
 package handlers
 
 import (
-	"context"
+	"fmt"
+	"slices"
 	"strings"
 
-	"encoding/json"
 	"net/http"
-	"spyal/cache"
 	"spyal/core"
-	"spyal/pkg/game"
+	"spyal/events"
+	"spyal/models"
 	"spyal/pkg/pages"
 	"spyal/pkg/utils/renderer"
+	"spyal/repos"
 
 	"go.uber.org/zap"
 )
 
 type RoomHandler struct {
 	core.Handler
+	gameRepo  repos.GameRepository
+	roundRepo repos.RoundRepository
+	userRepo  repos.UserRepository
 }
 
-
-func NewRoomHandler(l *zap.Logger) *RoomHandler {
+func NewRoomHandler(l *zap.Logger, g repos.GameRepository, r repos.RoundRepository, u repos.UserRepository) *RoomHandler {
 	return &RoomHandler{
 		Handler: core.Handler{
 			Log: l,
 		},
+		gameRepo:  g,
+		roundRepo: r,
+		userRepo:  u,
 	}
 }
 
 func (rh *RoomHandler) Show(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path                  
-	parts := strings.Split(path, "/")  
+	path := r.URL.Path
+	parts := strings.Split(path, "/")
 
 	if len(parts) < 3 || parts[2] == "" {
-		http.Error(w, "Room ID is required", http.StatusBadRequest)
+		rh.Log.Error(fmt.Sprintf("Room ID problem. parts : %v", parts))
+		http.Error(w, "Room ID is required", http.StatusInternalServerError)
 		return
 	}
 	roomID := parts[2]
 
-	ctx := context.Background()
-	gameJSON, err := cache.Get(ctx, "game:"+roomID)
-	if err != nil {
-		rh.Log.Error("failed to get game from Memory", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	ctx := r.Context()
+
+	var game models.Game
+	if err := rh.gameRepo.GetBy(ctx, &game, "room_id", roomID); err != nil {
+		rh.Log.Error("Error retrieving game from room_id: ", zap.Error(err))
+		http.Error(w, "There was a problem retrieving your game", http.StatusInternalServerError)
 		return
 	}
 
-	var game game.Game
-	if err := json.Unmarshal([]byte(gameJSON), &game); err != nil {
-		rh.Log.Error("failed to unmarshal game JSON", zap.Error(err))
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	var round models.Round
+
+	if err := rh.roundRepo.GetBy(ctx, &round, "game_id", game.ID); err != nil {
+		rh.Log.Error("Error fetching round: ", zap.Error(err))
+		http.Error(w, "There was a problem retrieving your game", http.StatusInternalServerError)
 		return
 	}
+
+	players, err := rh.roundRepo.GetPlayers(ctx, round.ID)
+
+	if err != nil {
+		rh.Log.Error("Error Fetching players: ", zap.Error(err))
+		http.Error(w, "There was a problem retrieving your game", http.StatusInternalServerError)
+		return
+	}
+
+	users := make(map[int]*models.User)
+	for _, player := range players {
+		var user models.User
+		if err = rh.userRepo.GetBy(ctx, &user, "id", player.UserID); err != nil {
+			rh.Log.Error("Error fetching user: ", zap.Error(err))
+			http.Error(w, "There was a problem retrieving your game", http.StatusInternalServerError)
+			return
+		}
+		users[int(player.UserID)] = &user
+	}
+
+	raw, ok := ctx.Value("id").(int64)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	userID := raw
+
+	exists := false
+	for _, u := range users {
+		if u.ID == userID {
+			exists = true
+			break
+		}
+	}
+
+	rawName, ok := ctx.Value("username").(string)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	username := rawName
+	data := map[string]any{
+		"user_id":  userID,
+		"username": username,
+		"topic":    roomID,
+	}
+	if !exists {
+		core.Dispatch(events.NewUserJoinedEvent(data))
+	}
+
+	spies := slices.Collect(
+		func(yield func(int64) bool) {
+			for _, p := range players {
+				if p.IsSpy {
+					if !yield(p.UserID) {
+						return
+					}
+				}
+			}
+		},
+	)
 
 	props := map[string]any{
 		"RoomID":      game.RoomID,
-		"RoomName":    game.RoomName,
-		"IsPublic":    game.IsPublic,
+		"RoomName":    game.Name,
+		"IsPublic":    !game.Private,
 		"MaxPlayers":  game.MaxPlayers,
-		"GameStarted": game.GameStarted,
-		"Players":     game.Players,
-		"Spies":       game.Spies,
+		"GameStarted": round.Status != "waiting",
+		"Players":     users,
+		"Spies":       spies,
 		"IsHost":      true,
 		"CreatedAt":   game.CreatedAt,
 	}

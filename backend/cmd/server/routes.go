@@ -20,18 +20,22 @@ import (
 	"go.uber.org/zap"
 )
 
+//nolint
 func Routes(myLogger *zap.Logger, metrics *metrics.Metrics, database *db.DB) http.Handler {
 	publicDir := os.Getenv("PUBLIC_DIR")
 	viewsDir := os.Getenv("VIEWS_DIR")
 	username := os.Getenv("USERNAME")
 	password := os.Getenv("PASSWORD")
 
+	userRepo := repos.NewUserRepo(database)
+	gameRepo := repos.NewGameRepo(database)
+	roundRepo := repos.NewRoundRepo(database)
+	wordRepo := repos.NewWordRepo(database)
 	hh := handlers.NewHomeHandler(myLogger)
-	gh := handlers.NewGameHandler(myLogger)
-	rh := handlers.NewRoomHandler(myLogger)
+	gh := handlers.NewGameHandler(myLogger,gameRepo,roundRepo,wordRepo)
+	rh := handlers.NewRoomHandler(myLogger,gameRepo,roundRepo,userRepo)
 	lh := handlers.NewLogHandler(myLogger)
 
-	userRepo := repos.NewUserRepo(database)
 	uh := handlers.NewUserHandler(myLogger,userRepo)
 
 	router := core.NewRouter()
@@ -52,9 +56,9 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics, database *db.DB) htt
 	router.Get("/create", gh.CreateGamePage)
 	router.Get("/create/remote", gh.CreateRemoteGamePage)
 
-	router.Post("/create/remote", gh.CreateRemoteGame)
+	router.Post("/create/remote", middleware.AuthMiddleware(http.HandlerFunc(gh.CreateRemoteGame)).ServeHTTP)
 
-	router.Get("/room/", rh.Show)
+	router.Get("/room/", middleware.AuthMiddleware(http.HandlerFunc(rh.Show)).ServeHTTP)
 
 	router.Get("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))).ServeHTTP)
 

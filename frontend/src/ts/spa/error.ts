@@ -45,7 +45,7 @@ export const serveErrorPage = async (
   }
 
   try {
-    const res = await fetch('public/html/error.html');
+    const res = await fetch('/public/html/error.html');
     let errorHtml = await res.text();
 
     errorHtml = errorHtml

@@ -2,6 +2,7 @@ import { client } from '@alspy/api';
 import { Importance, initToast, Level } from '@alspy/services/toast';
 import type { RemoteGameCreationResponse, RemoteGameForm } from './types';
 import { navigateToPage } from '@alspy/spa';
+import { Config } from '@alspy/config';
 
 async function handleFormSubmit(event: Event) {
   event.preventDefault();
@@ -11,29 +12,19 @@ async function handleFormSubmit(event: Event) {
   const { data } = (event as CustomEvent<{ data: Record<string, string> }>)
     .detail;
 
-  const playerName = data['player-nickname']?.trim() || '';
-  const gameNameRaw = data['game-name']?.trim() || '';
+  const gameName = data['game-name']?.trim() || '';
   const spyNumber = Number(data['spy-number']);
   const maxPlayers = Number(data['max-players']);
   const isPrivate = data['game-visibility'] === 'private';
 
-  if (
-    !playerName ||
-    !spyNumber ||
-    !maxPlayers ||
-    !('game-visibility' in data)
-  ) {
+  if (!spyNumber || !maxPlayers || !('game-visibility' in data)) {
     toast.show(Level.Error, Importance.Major, {
       message: 'Plotësoni të gjitha fushat e detyrueshme!',
     });
     return;
   }
 
-  const gameName =
-    gameNameRaw || (playerName ? `Dhoma e ${playerName}` : 'Spyfall Dhoma');
-
   const form: RemoteGameForm = {
-    playerName,
     gameName,
     spyNumber,
     maxNumbers: maxPlayers,
@@ -42,9 +33,7 @@ async function handleFormSubmit(event: Event) {
 
   const response: RemoteGameCreationResponse = await client.post(
     '/create/remote',
-    {
-      params: { ...form },
-    }
+    form
   );
 
   navigateToPage(`/room/${response.roomID}`);

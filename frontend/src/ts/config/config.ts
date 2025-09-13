@@ -5,6 +5,7 @@ type ConfigShape = {
   API_URL: string;
   STAGE: Staging;
   LOG_ROUTE: string;
+  TOKEN: string;
   POKED_WS_SERVER: string;
   IS_DEVELOPMENT: boolean;
   IS_PRODUCTION: boolean;
@@ -28,6 +29,8 @@ export const Config: ConfigShape = {
 
   API_URL: `${PROTOCOL}://${HOST}`,
   LOG_ROUTE: `${PROTOCOL}://${HOST}/api/log`,
+
+  TOKEN: 'jwt_auth_',
 
   POKED_WS_SERVER: `${stage === Staging.Production ? 'wss' : 'ws'}://${HOST}/poked`,
 

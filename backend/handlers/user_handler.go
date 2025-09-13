@@ -3,6 +3,8 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"time"
+	"os"
 
 	"spyal/auth"
 	"spyal/core"
@@ -67,7 +69,18 @@ func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	token := auth.CreateToken(user.Username, auth.TokenTTL)
+	token := auth.CreateToken(user.ID, user.Username, auth.TokenTTL*time.Second)
+
+	prod := os.Getenv("ENV") == "production"
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   prod,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   int(auth.TokenTTL * time.Second),
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -1,5 +1,5 @@
-import { Config } from "@alspy/config";
-import { EventName } from "./types";
+import { Config } from '@alspy/config';
+import { EventName } from './types';
 
 type Listener = (payload: any) => void;
 
@@ -17,7 +17,7 @@ export class Channel {
         try {
           this.socket.send(msg);
         } catch (e) {
-          console.error("Failed to send queued WS message:", e);
+          console.error('Failed to send queued WS message:', e);
         }
       }
       this.sendQueue = [];
@@ -29,12 +29,12 @@ export class Channel {
         const { type, msg: payload } = msg;
         this._notify(type, payload);
       } catch {
-        console.warn("⚠️ Invalid WS message:", e.data);
+        console.warn('⚠️ Invalid WS message:', e.data);
       }
     };
 
     this.socket.onerror = (err) => {
-      console.error("WebSocket error:", err);
+      console.error('WebSocket error:', err);
     };
 
     this.socket.onclose = (ev) => {
@@ -64,16 +64,19 @@ export class Channel {
   close(code?: number, reason?: string): void {
     try {
       // Close unless already closed
-      if (this.socket.readyState !== WebSocket.CLOSING && this.socket.readyState !== WebSocket.CLOSED) {
+      if (
+        this.socket.readyState !== WebSocket.CLOSING &&
+        this.socket.readyState !== WebSocket.CLOSED
+      ) {
         // if the caller provided a code, use it; otherwise just call close()
-        if (typeof code === "number") {
+        if (typeof code === 'number') {
           this.socket.close(code, reason);
         } else {
           this.socket.close();
         }
       }
     } catch (e) {
-      console.error("Error closing WebSocket:", e);
+      console.error('Error closing WebSocket:', e);
     }
 
     // cleanup handlers and queued messages
@@ -89,11 +92,11 @@ export class Channel {
   private _notify(type: number, payload: any) {
     const handlers = this.listeners.get(type);
     if (handlers) {
-      handlers.forEach(fn => {
+      handlers.forEach((fn) => {
         try {
           fn(payload);
         } catch (e) {
-          console.error("Channel listener error:", e);
+          console.error('Channel listener error:', e);
         }
       });
     }
@@ -107,7 +110,7 @@ class Poker {
 
   constructor() {
     this.baseUrl = Config.POKED_WS_SERVER;
-    this.protocol = "poked";
+    this.protocol = 'poked';
   }
 
   /**
@@ -115,14 +118,17 @@ class Poker {
    * is OPEN or CONNECTING, it's returned. If the previous socket is CLOSED
    * (or CLOSING), a new socket/channel is created and returned.
    */
-  channel(name: string): Channel {
+  channel(name: string, topic: string): Channel {
     const existing = this.channels.get(name);
     if (existing) {
       const rs = existing as Channel & { socket?: WebSocket };
       // try to access the socket readyState; fallback to returning existing
       try {
         const readyState = (rs as any).socket?.readyState;
-        if (readyState === WebSocket.OPEN || readyState === WebSocket.CONNECTING) {
+        if (
+          readyState === WebSocket.OPEN ||
+          readyState === WebSocket.CONNECTING
+        ) {
           return existing;
         }
         // If CLOSED or CLOSING, fallthrough to recreate
@@ -132,7 +138,10 @@ class Poker {
       }
     }
 
-    const ws = new WebSocket(`${this.baseUrl}?channel=${name}`, this.protocol);
+    const ws = new WebSocket(
+      `${this.baseUrl}?channel=${name}&topic=${topic}`,
+      this.protocol
+    );
     const chan = new Channel(ws);
     this.channels.set(name, chan);
     return chan;

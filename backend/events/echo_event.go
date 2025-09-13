@@ -25,3 +25,8 @@ func (ee *EchoEvent) GetName() contracts.EventName {
 func (ee *EchoEvent) Channel() string{
 	return "echo"
 }
+
+func (ee *EchoEvent) Topic() string {
+	v, _ := ee.Data["topic"].(string)
+	return v
+}

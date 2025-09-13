@@ -61,3 +61,7 @@ Thumbs.db
 
 # Zips
 *.zip
+
+# Stored data
+valkey_data
+postgres_data

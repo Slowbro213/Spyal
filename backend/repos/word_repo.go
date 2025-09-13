@@ -16,19 +16,18 @@ import (
 var ErrWordNotFound = errors.New("word not found")
 
 type WordRepository interface {
+	repoInterface
 	Create(ctx context.Context, w *models.Word) error
-	GetByID(ctx context.Context, id int64) (*models.Word, error)
-	GetByWord(ctx context.Context, word string) (*models.Word, error)
 	AddRelated(ctx context.Context, wordID1, wordID2 int64) error
-	GetRelated(ctx context.Context, wordID int64) ([]*models.Word, error)
+	RandomPair(ctx context.Context) (main, related *models.Word, err error)
 }
 
 type wordRepo struct {
-	db sqlx.ExtContext
+	repo
 }
 
 func NewWordRepo(db sqlx.ExtContext) WordRepository {
-	return &wordRepo{db: db}
+	return &wordRepo{repo: repo{db: db}}
 }
 
 func (r *wordRepo) Create(ctx context.Context, w *models.Word) error {
@@ -48,48 +47,6 @@ func (r *wordRepo) Create(ctx context.Context, w *models.Word) error {
 	return nil
 }
 
-func (r *wordRepo) GetByID(ctx context.Context, id int64) (*models.Word, error) {
-	key := fmt.Sprintf("word_%d", id)
-	if cached, err := cache.Get(ctx, key); err == nil && cached != "" {
-		var w models.Word
-		if json.Unmarshal([]byte(cached), &w) == nil {
-			return &w, nil
-		}
-	}
-	var w models.Word
-	err := sqlx.GetContext(ctx, r.db, &w, `SELECT id, word FROM words WHERE id=$1`, id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrWordNotFound
-		}
-		return nil, fmt.Errorf("get word by id: %w", err)
-	}
-	data, _ := json.Marshal(w)
-	_ = cache.Set(ctx, key, string(data), time.Hour)
-	return &w, nil
-}
-
-func (r *wordRepo) GetByWord(ctx context.Context, word string) (*models.Word, error) {
-	key := "word_txt_" + word
-	if cached, err := cache.Get(ctx, key); err == nil && cached != "" {
-		var w models.Word
-		if json.Unmarshal([]byte(cached), &w) == nil {
-			return &w, nil
-		}
-	}
-	var w models.Word
-	err := sqlx.GetContext(ctx, r.db, &w, `SELECT id, word FROM words WHERE word=$1`, word)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrWordNotFound
-		}
-		return nil, fmt.Errorf("get word by text: %w", err)
-	}
-	data, _ := json.Marshal(w)
-	_ = cache.Set(ctx, key, string(data), time.Hour)
-	return &w, nil
-}
-
 func (r *wordRepo) AddRelated(ctx context.Context, wordID1, wordID2 int64) error {
 	if wordID1 == wordID2 {
 		return errors.New("cannot relate word to itself")
@@ -106,18 +63,39 @@ func (r *wordRepo) AddRelated(ctx context.Context, wordID1, wordID2 int64) error
 	return nil
 }
 
-func (r *wordRepo) GetRelated(ctx context.Context, wordID int64) ([]*models.Word, error) {
-	var ww []*models.Word
-	err := sqlx.SelectContext(ctx, r.db, &ww, `
-		SELECT w.id, w.word
-		FROM word_related wr
-		JOIN words w ON w.id = CASE
-			WHEN wr.word_id_1 = $1 THEN wr.word_id_2
-			ELSE wr.word_id_1
-		END
-		WHERE $1 IN (wr.word_id_1, wr.word_id_2)`, wordID)
+type pair struct {
+	MainID      int64  `db:"main_id"`
+	MainWord    string `db:"main_word"`
+	RelatedID   int64  `db:"related_id"`
+	RelatedWord string `db:"related_word"`
+}
+
+func (r *wordRepo) RandomPair(ctx context.Context) (main, related *models.Word, err error) {
+	var p pair
+	err = sqlx.GetContext(ctx, r.db, &p, `
+		SELECT w1.id            AS main_id,
+		       w1.word          AS main_word,
+		       COALESCE(w2.id, w1.id)   AS related_id,
+		       COALESCE(w2.word, w1.word) AS related_word
+		FROM  (SELECT id, word FROM words ORDER BY RANDOM() LIMIT 1) w1
+		LEFT  JOIN LATERAL (
+		        SELECT w.id, w.word
+		        FROM   word_related wr
+		        JOIN   words w ON w.id = CASE WHEN wr.word_id_1 = w1.id
+		                                      THEN wr.word_id_2
+		                                      ELSE wr.word_id_1 END
+		        WHERE  w1.id IN (wr.word_id_1, wr.word_id_2)
+		        ORDER  BY RANDOM()
+		        LIMIT   1
+		      ) w2 ON true`)
 	if err != nil {
-		return nil, fmt.Errorf("get related: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, ErrWordNotFound
+		}
+		return nil, nil, fmt.Errorf("random pair: %w", err)
 	}
-	return ww, nil
+
+	word := &models.Word{ID: p.MainID, Word: p.MainWord}
+	related = &models.Word{ID: p.RelatedID, Word: p.RelatedWord}
+	return word, related, nil
 }

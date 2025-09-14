@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	timeOut = 10
+	timeOut = 10000000
 )
 
 func IsWebSocketRequest(r *http.Request) bool {

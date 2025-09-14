@@ -6,4 +6,5 @@ import "spyal/contracts"
 var ListenerRegistry = []contracts.NewListenerFunc {
 	NewEchoListener,
 	NewGameListener,
+	NewUserJoinedListener,
 }

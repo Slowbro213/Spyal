@@ -110,6 +110,18 @@ func (rh *RoomHandler) Show(w http.ResponseWriter, r *http.Request) {
 	}
 	if !exists {
 		core.Dispatch(events.NewUserJoinedEvent(data))
+		if err := rh.roundRepo.AddParticipant(ctx, round.ID, userID, false); err != nil {
+			rh.Log.Error("Error adding participant", zap.Error(err))
+			http.Error(w, "Kishte nje problem ne shtimin tuaj ne loj", http.StatusInternalServerError)
+			return
+		}
+		var user models.User
+		if err := rh.userRepo.GetBy(ctx, &user, "id", userID); err != nil {
+			rh.Log.Error("Error retrieving user", zap.Error(err))
+			http.Error(w, "Kishte nje problem ne shtimin tuaj ne loj", http.StatusInternalServerError)
+			return
+		}
+		users[int(userID)] = &user
 	}
 
 	spies := slices.Collect(

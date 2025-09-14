@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TokenTTL = 60 * 60 * 5
+	TokenTTL = 60*60
 )
 
 //nolint

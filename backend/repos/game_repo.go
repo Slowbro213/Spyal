@@ -17,6 +17,7 @@ var ErrGameNotFound = errors.New("game not found")
 type GameRepository interface {
 	repoInterface
 	Create(context.Context,*models.Game) error
+	GetPublicActive(context.Context,string) ([]*models.Game, error)
 }
 
 type gameRepo struct {
@@ -45,6 +46,43 @@ func (r *gameRepo) Create(ctx context.Context, g *models.Game) error {
 	}
 
 	data, _ := json.Marshal(g)
-	_ = cache.Set(ctx, g.TableName() + g.RoomID, string(data), time.Hour)
+	_ = cache.Set(ctx, g.TableName()+g.RoomID, string(data), time.Hour)
+	_ = cache.Delete(ctx, "public_active")
 	return nil
+}
+
+func (r *gameRepo) GetPublicActive(ctx context.Context, searchTerm string) ([]*models.Game, error) {
+	key := "public_active"
+	if searchTerm != "" {
+		key += ":search:" + searchTerm
+	}
+
+	if val, err := cache.Get(ctx, key); err == nil && val != "" {
+		var cached []*models.Game
+		if json.Unmarshal([]byte(val), &cached) == nil {
+			return cached, nil
+		}
+	}
+
+	var games []*models.Game
+	sb := `SELECT * FROM games WHERE private = false AND active = true`
+	if searchTerm != "" {
+		sb += ` AND (name ILIKE '%' || $1 || '%' OR room_id ILIKE '%' || $1 || '%')`
+	}
+	sb += ` ORDER BY created_at DESC`
+
+	if searchTerm != "" {
+		if err := sqlx.SelectContext(ctx, r.db, &games, sb, searchTerm); err != nil {
+			return nil, fmt.Errorf("get public active games: %w", err)
+		}
+	} else {
+		if err := sqlx.SelectContext(ctx, r.db, &games, sb); err != nil {
+			return nil, fmt.Errorf("get public active games: %w", err)
+		}
+	}
+
+	data, _ := json.Marshal(games)
+	//nolint
+	_ = cache.Set(ctx, key, string(data), 5*time.Minute)
+	return games, nil
 }

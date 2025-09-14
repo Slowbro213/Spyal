@@ -37,6 +37,44 @@ func NewGameHandler(l *zap.Logger, g repos.GameRepository,
 	}
 }
 
+func (gh *GameHandler) Index(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	searchQuery := r.URL.Query().Get("q")
+
+	games, err := gh.gameRepo.GetPublicActive(ctx, searchQuery)
+
+	if err != nil {
+		gh.Log.Error("Error while fetching public active games: ", zap.Error(err))
+		if pages.IsFragment(r) {
+			 w.WriteHeader(http.StatusInternalServerError)
+			 w.Write([]byte("Kishte nje problem ne marrjen e lojrave."))
+		} else {
+			http.Error(w, "Kishte nje problem ne marrjen e lojrave.", http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	props := map[string]any{
+		"Games":       games,
+		"SearchQuery": searchQuery,
+	}
+
+	isFragment := pages.IsFragment(r)
+	err = renderer.Render(w, isFragment, props,
+		pages.LayoutBase,
+		pages.PageGames,
+	)
+
+	if err != nil {
+		gh.Log.Error("Error Rendering Games page: ", zap.Error(err))
+		if !pages.IsFragment(r) {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+	}
+}
+
 func (gh *GameHandler) CreateGamePage(w http.ResponseWriter, r *http.Request) {
 	isFragment := pages.IsFragment(r)
 	props := map[string]any{"title": "Spyfall Shqip - Krijo Lojë"}

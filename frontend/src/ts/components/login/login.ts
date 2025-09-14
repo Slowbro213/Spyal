@@ -1,4 +1,3 @@
-import { Config } from '@alspy/config';
 import { Importance, initToast, Level } from '@alspy/services/toast';
 
 const toast = initToast();
@@ -128,12 +127,25 @@ export class LoginButton extends HTMLElement {
     this.submitBtn.addEventListener('click', this.onSubmit.bind(this));
     this.shadow.addEventListener('keydown', this.onKeyDown.bind(this));
 
-    // initialize state from storage
-    const prefix = Config.TOKEN;
-    const storedUser = localStorage.getItem(`${prefix}username`);
+    const storedUser = document.cookie
+      .split('; ')
+      .find(row => row.startsWith(`username=`))
+      ?.split('=')[1];
+
     if (storedUser) {
-      this.setLoggedIn(storedUser);
+      this.setLoggedIn(decodeURIComponent(storedUser));
     }
+
+    document.addEventListener('auth:expire', (() => {
+      this.loggedIn = false;
+      this.buttonEl.textContent = 'Login';
+      this.buttonEl.setAttribute('aria-disabled', 'false');
+    }) as EventListener);
+
+    document.addEventListener('auth:authenticated', ((e: Event) => {
+      const { username } = (e as CustomEvent<{ username: string }>).detail;
+      this.setLoggedIn(username);
+    }) as EventListener);
   }
 
   disconnectedCallback() {
@@ -191,9 +203,6 @@ export class LoginButton extends HTMLElement {
       const res = await fetch('/login', {
         method: 'POST',
         body: body,
-        headers: {
-          Accept: 'application/json',
-        },
       });
 
       if (!res.ok) {
@@ -205,29 +214,6 @@ export class LoginButton extends HTMLElement {
         this.submitBtn.textContent = 'Login';
         return;
       }
-
-      const data = await res.json().catch(() => null);
-      const ttl = data?.ttl;
-      if (!ttl) {
-        toast.show(Level.Error, Importance.Major, {
-          message: 'Token jo i vlefshëm nga serveri',
-        });
-        this.submitBtn.disabled = false;
-        this.submitBtn.textContent = 'Login';
-        return;
-      }
-      console.log(ttl)
-
-
-      const prefix = Config.TOKEN;
-      localStorage.setItem(`${prefix}username`, username);
-
-      setTimeout(() => {
-        localStorage.removeItem(`${prefix}username`);
-        this.loggedIn = false;
-        this.buttonEl.textContent = 'Login';
-        this.buttonEl.setAttribute('aria-disabled', 'false');
-      }, ttl * 1000);
 
       this.setLoggedIn(username);
       this.closeModal();
@@ -244,7 +230,6 @@ export class LoginButton extends HTMLElement {
     if (e.key === 'Escape') {
       this.closeModal();
     } else if (e.key === 'Enter' && this.overlayEl.classList.contains('show')) {
-      // submit on Enter
       this.onSubmit();
     }
   }

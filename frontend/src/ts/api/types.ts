@@ -1,4 +1,4 @@
-export type Api_Route = '/create/remote' | '/join';
+export type Api_Route = '/create/remote' | '/join' | '/login';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 

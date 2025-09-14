@@ -12,11 +12,9 @@ type Cache struct {
 	client valkey.Client
 }
 
-func NewClient(addrs []string, disableCache bool) (*Cache, error) {
-	if len(addrs) == 0 {
-		return nil, errors.New("at least one address required")
-	}
-	c, err := valkey.NewClient(valkey.ClientOption{InitAddress: addrs, DisableCache: disableCache})
+func NewClient(addres string) (*Cache, error) {
+	addrs := []string{addres}
+	c, err := valkey.NewClient(valkey.ClientOption{InitAddress: addrs, DisableCache: false})
 	if err != nil {
 		return nil, err
 	}

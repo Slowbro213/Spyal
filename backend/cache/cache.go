@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	"spyal/cache/redis"
-	"spyal/cache/valkey"
 )
 
 type Driver interface {
@@ -16,37 +13,43 @@ type Driver interface {
 	Delete(ctx context.Context, key string) error
 }
 
+const (
+	maxAttempts = 5
+	attemptInterval = 3
+)
+
+//nolint
 var driver Driver
 
 func Init() {
 	drv := os.Getenv("CACHE_DRIVER")
-
-	switch drv {
-	case "redis":
-		url := os.Getenv("REDIS_URL")
-		if url == "" {
-			panic("REDIS_URL not set for redis cache driver")
-		}
-		r, err := redis.NewClient("redis://" + url)
-		if err != nil {
-			panic(fmt.Errorf("failed to initialize redis cache: %w", err))
-		}
-		driver = r
-	case "valkey":
-		vURL := os.Getenv("VALKEY_URL")
-		if vURL == "" {
-			panic("VALKEY_URL not set for valkey cache driver")
-		}
-		addrs := []string{vURL}
-		v, err := valkey.NewClient(addrs, false)
-		if err != nil {
-			panic(fmt.Errorf("failed to initialize valkey cache: %w", err))
-		}
-		driver = v
-	default:
+	factory, err := NewDriverFactory(drv)
+	if err != nil  {
 		panic("CACHE_DRIVER not set or invalid. Must be 'redis' or 'valkey'")
 	}
+
+	arg := ""
+	switch drv {
+	case "redis":
+		arg = os.Getenv("REDIS_URL")
+		if arg == "" {
+			panic("REDIS_URL not set for redis cache driver")
+		}
+	case "valkey":
+		arg = os.Getenv("VALKEY_URL")
+		if arg == "" {
+			panic("VALKEY_URL not set for valkey cache driver")
+		}
+	}
+
+	d, err := WithRetry(factory, arg, maxAttempts, attemptInterval*time.Second)
+	if err != nil {
+		panic(fmt.Errorf("failed to initialize %s cache: %w", drv, err))
+	}
+	driver = d
 }
+
+
 
 func Get(ctx context.Context, key string) (string, error) {
 	return driver.Get(ctx, key)

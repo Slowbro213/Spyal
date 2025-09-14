@@ -14,6 +14,8 @@ var (
 	PageCreate  string
 	PageRemote  string
 	PageHome    string
+	PageLogin    string
+	PageGames   string
 	PageRoom    string
 
 	CompRoom    string
@@ -31,6 +33,8 @@ func Init() error {
 	PageCreate = viewsDir + "pages/create.html"
 	PageRemote = viewsDir + "pages/remote.html"
 	PageHome = viewsDir + "pages/index.html"
+	PageLogin = viewsDir + "pages/login.html"
+	PageGames = viewsDir + "pages/games.html"
 	PageRoom = viewsDir + "pages/room.html"
 
 	CompRoom = viewsDir + "components/room.html"

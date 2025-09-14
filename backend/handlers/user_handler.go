@@ -1,15 +1,20 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"spyal/auth"
 	"spyal/core"
+	"spyal/dto/requests"
 	"spyal/models"
+	"spyal/pkg/pages"
+	"spyal/pkg/utils/renderer"
 	"spyal/repos"
 
 	"go.uber.org/zap"
@@ -28,77 +33,71 @@ func NewUserHandler(l *zap.Logger, ur repos.UserRepository) *UserHandler {
 	}
 }
 
-func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	username := r.PostFormValue("username")
-	password := r.PostFormValue("password")
+func (uh *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
+	props := map[string]any{"Next": r.URL.Query().Get("next")}
+	_ = renderer.Render(w, pages.IsFragment(r), props,
+		pages.LayoutBase,
+		pages.PageLogin,
+	)
+}
 
-	if username == "" || password == "" {
-		http.Error(w, "Username and Password required", http.StatusBadRequest)
+func (uh *UserHandler) LoginOrRegister(w http.ResponseWriter, r *http.Request) {
+	form, err := requests.NewLoginForm(r)
+	if err != nil {
+		writeJSONError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	ctx := r.Context()
+	username := form.Username
+	password := form.Password
+
 	user, err := uh.userRepository.GetByUsername(ctx, username)
 	if err != nil && !errors.Is(err, repos.ErrUserNotFound) {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		writeJSONError(w, "Internal server error", http.StatusInternalServerError)
 		uh.Log.Error("failed to fetch user", zap.Error(err))
 		return
 	}
 
 	if user == nil {
-		passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		if err != nil {
-			http.Error(w, "Sorry, something went wrong!", http.StatusInternalServerError)
-			uh.Log.Error("error hashing password", zap.Error(err))
-			return
-		}
-
-		user = &models.User{
-			Username: username,
-			Password: string(passHash),
-		}
-
-		if err := uh.userRepository.Create(ctx, user); err != nil {
-			http.Error(w, "Sorry, something went wrong!", http.StatusInternalServerError)
-			uh.Log.Error("error creating user", zap.Error(err))
-			return
-		}
+		user, err = uh.createUser(ctx, username, password)
 	} else {
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-			http.Error(w, "invalid credentials", http.StatusUnauthorized)
-			return
-		}
+		err = uh.authenticateUser(user, password)
+	}
+	if err != nil {
+		writeJSONError(w, err.Error(), http.StatusUnauthorized)
+		return
 	}
 
-	token := auth.CreateToken(user.ID, user.Username, auth.TokenTTL*time.Second)
+	uh.loginUser(w, user)
 
-	prod := os.Getenv("ENV") == "production"
-	http.SetCookie(w, &http.Cookie{
-		Name:     "auth",
-		Value:    token,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   prod,
-		SameSite: http.SameSiteStrictMode,
-		MaxAge:   int(auth.TokenTTL * time.Second),
-	})
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	resp := fmt.Sprintf(`{"ttl":%d}`,int(auth.TokenTTL))
-	if _, err = w.Write([]byte(resp)); err != nil {
-		uh.Log.Error("error writing response", zap.Error(err))
+	next := r.URL.Query().Get("next")
+	if next == "" || !strings.HasPrefix(next, "/") {
+		next = "/"
 	}
+	http.Redirect(w, r, next, http.StatusSeeOther)
 }
 
 func (uh *UserHandler) Logout(w http.ResponseWriter, _ *http.Request) {
+	prod := os.Getenv("ENV") == "production"
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "auth",
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   os.Getenv("ENV") == "production",
+		Secure:   prod,
 		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "username",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: false,
+		Secure:   prod,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})
 
@@ -107,4 +106,56 @@ func (uh *UserHandler) Logout(w http.ResponseWriter, _ *http.Request) {
 	if _, err := w.Write([]byte(`{"message":"logged out successfully"}`)); err != nil {
 		uh.Log.Error("error writing response", zap.Error(err))
 	}
+}
+
+func (uh *UserHandler) createUser(ctx context.Context, username, password string) (*models.User, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		uh.Log.Error("hash error", zap.Error(err))
+		return nil, errors.New("sorry, something went wrong")
+	}
+	u := &models.User{Username: username, Password: string(hash)}
+	if err := uh.userRepository.Create(ctx, u); err != nil {
+		uh.Log.Error("create error", zap.Error(err))
+		return nil, errors.New("sorry, something went wrong")
+	}
+	return u, nil
+}
+
+func (uh *UserHandler) authenticateUser(u *models.User, password string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
+		return errors.New("invalid credentials")
+	}
+	return nil
+}
+
+func (uh *UserHandler) loginUser(w http.ResponseWriter, u *models.User) {
+	token := auth.CreateToken(u.ID, u.Username, auth.TokenTTL*time.Second)
+	prod := os.Getenv("ENV") == "production"
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   prod,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   int(auth.TokenTTL),
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "username",
+		Value:    u.Username,
+		Path:     "/",
+		HttpOnly: false,
+		Secure:   prod,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   int(auth.TokenTTL),
+	})
+}
+
+func writeJSONError(w http.ResponseWriter, msg string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }

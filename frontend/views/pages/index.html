@@ -3,34 +3,81 @@ end }} {{ define "content" }}
 <section class="hero">
   <div class="container mx-auto px-4 text-center">
     <span class="hero-emoji">🕵️</span>
-    <h1 class="hero-text mt-4">Spyfall Shqip</h1>
-    <p
-      class="hero-text mt-4 text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto"
-    >
+    <h1 class="hero-text mt-4">Spyal</h1>
+    <p class="hero-text mt-4 text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
       Një lojë deduktimi dhe mashtrimi ku 5-10 lojtarë përpiqen të zbulojnë
       spiunin... ose të fshihen nëse janë spiun!
     </p>
-    <div
-      class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6"
-    >
+    <div class="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
       <smart-link prefetch="load" href="/create" class="btn-primary">
         <span class="mr-2">🎮</span> Krijo Lojë
       </smart-link>
-      <smart-link prefetch="load" href="/join" class="btn-secondary">
+      <smart-link prefetch="load" href="/games" class="btn-secondary">
         <span class="mr-2">🤝</span> Bashkohu
       </smart-link>
     </div>
   </div>
 </section>
-
 <section id="lojërat" class="container mx-auto px-4">
-  <h2 class="text-center mb-8">Lojërat Aktive</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {{ template "components/room.html" .Room }} {{ template
-    "components/room.html" .Room }} {{ template "components/room.html" .Room }}
-  </div>
-</section>
+  <h2 class="text-center mb-8">Lojëra Aktive</h2>
 
+  {{ $rooms := .Rooms }}
+  {{ $cap := .RoomsCap }}
+  {{ $show := len $rooms }}
+
+  {{ if gt $show 0 }}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {{ range $i, $room := $rooms }}
+    {{ if lt $i $cap }}
+    <article class="group relative bg-[var(--background-light)]
+                           border border-[var(--border-accent)]/30 rounded-2xl p-6
+                           shadow-lg hover:shadow-2xl hover:border-[var(--primary-teal)]
+                           transition-all duration-300">
+      <div class="flex items-start justify-between mb-4">
+        <h2 class="text-xl font-bold text-[var(--text-primary)]
+                         group-hover:text-[var(--primary-teal)] transition-colors">
+          {{ .Name }}
+        </h2>
+        <span class="inline-flex items-center px-3 py-1 rounded-full
+                           text-xs font-semibold bg-emerald-500/10 text-emerald-400">
+          Aktive
+        </span>
+      </div>
+
+      <ul class="space-y-2 text-sm text-[var(--text-secondary)] mb-5">
+        <li class="flex items-center gap-2">
+          <span class="text-[var(--primary-teal)]">🕵️</span>
+          Spiunë për lojë: <span class="font-semibold text-[var(--text-primary)]">{{ .SpyNumber }}</span>
+        </li>
+        <li class="flex items-center gap-2">
+          <span class="text-[var(--secondary-coral)]">👥</span>
+          Maks. lojtarë: <span class="font-semibold text-[var(--text-primary)]">{{ .MaxPlayers }}</span>
+        </li>
+        <li class="flex items-center gap-2">
+          <span class="text-[var(--accent-violet)]">🕒</span>
+          Krijuar: <span class="font-semibold text-[var(--text-primary)]">{{ .CreatedAt.Format "15:04" }}</span>
+        </li>
+      </ul>
+
+      <smart-link href="/room/{{ .RoomID }}" class="btn-primary">
+        Hyj në dhomë
+      </smart-link>
+    </article>
+    {{ end }}
+    {{ end }}
+  </div>
+
+  {{ if gt $show $cap }}
+  <div class="text-center mt-8">
+    <smart-link prefetch="load" href="/games" class="btn-secondary">
+      <span class="mr-2">👀</span> Shiko më shumë
+    </smart-link>
+  </div>
+  {{ end }}
+  {{ else }}
+  <p class="text-center text-gray-400">Asnjë lojë aktive për momentin.</p>
+  {{ end }}
+</section>
 <section id="veçoritë" class="container mx-auto px-4">
   <h2 class="text-center mb-12">Pse të luash Spyfall?</h2>
   <p class="text-center text-lg text-gray-300 mb-8">

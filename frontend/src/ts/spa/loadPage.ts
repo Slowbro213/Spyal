@@ -8,6 +8,10 @@ export const loadPage = async (href: string) => {
   try {
     const html = pageCache.get(href);
     if (target === null || !html) {
+      log({
+        level: 'error',
+        msg: `Failed to Load ${href}, Error: no target`,
+      });
       await serveErrorPage(Severity.small);
       return;
     }

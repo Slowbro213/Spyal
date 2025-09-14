@@ -1,5 +1,6 @@
 import { remotePage } from './remote';
 import { roomPage } from './room';
+import { loginPage } from './login';
 import type { Page } from './types';
 
 export const isCacheValid = (page: Page | undefined) => {
@@ -9,28 +10,27 @@ export const isCacheValid = (page: Page | undefined) => {
     typeof page.lastVisited === 'number' &&
     now > page.lastVisited + page.pageCache();
 
-  return !cacheExpired;
+  return cacheExpired;
 };
 
 const pages: Record<string, Page> = {
   '/create/remote': remotePage,
   '/room/*': roomPage,
+  '/login?*': loginPage
 };
 
 export const GetPage = (location: string): Page | undefined => {
-  // Try direct match first
   if (pages[location]) return pages[location];
 
-  // Fallback to wildcard/regex-style matching
   for (const path in pages) {
     if (path.includes('*')) {
-      const pattern = path.replace(/\*/g, '.*'); // turn '/room/*' into '/room/.*'
+      const pattern = path.replace(/\*/g, '.*');
       const regex = new RegExp(`^${pattern}$`);
       if (regex.test(location)) return pages[path];
     }
   }
 
-  return undefined; // No match
+  return undefined;
 };
 
 export const onPageChange = async () => {

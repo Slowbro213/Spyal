@@ -31,7 +31,7 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics, database *db.DB) htt
 	gameRepo := repos.NewGameRepo(database)
 	roundRepo := repos.NewRoundRepo(database)
 	wordRepo := repos.NewWordRepo(database)
-	hh := handlers.NewHomeHandler(myLogger)
+	hh := handlers.NewHomeHandler(myLogger,gameRepo)
 	gh := handlers.NewGameHandler(myLogger,gameRepo,roundRepo,wordRepo)
 	rh := handlers.NewRoomHandler(myLogger,gameRepo,roundRepo,userRepo)
 	lh := handlers.NewLogHandler(myLogger)
@@ -50,11 +50,13 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics, database *db.DB) htt
 		hh.HomePage(w, r)
 	})
 
+	router.Get("/login", middleware.GuestMiddleware(http.HandlerFunc(uh.LoginPage)).ServeHTTP)
 	router.Post("/login", middleware.GuestMiddleware(http.HandlerFunc(uh.LoginOrRegister)).ServeHTTP)
 	router.Post("/logout", middleware.GuestMiddleware(http.HandlerFunc(uh.Logout)).ServeHTTP)
 
 	router.Get("/create", gh.CreateGamePage)
 	router.Get("/create/remote", gh.CreateRemoteGamePage)
+	router.Get("/games", gh.Index)
 
 	router.Post("/create/remote", middleware.AuthMiddleware(http.HandlerFunc(gh.CreateRemoteGame)).ServeHTTP)
 

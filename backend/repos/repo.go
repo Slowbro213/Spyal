@@ -21,6 +21,7 @@ var ErrNotFound = errors.New("game not found")
 
 type repoInterface interface {
 	GetBy(context.Context, models.Model, string, any) error
+	DB() sqlx.ExtContext
 }
 
 type repo struct {
@@ -111,3 +112,9 @@ func (b repo) UpdateColumns(
 	_, err := b.db.ExecContext(ctx, q, args...)
 	return err
 }
+
+
+func (b repo) DB() sqlx.ExtContext {
+	return b.db
+}
+

@@ -4,7 +4,10 @@ package listeners
 import "spyal/contracts"
 
 var ListenerRegistry = []contracts.NewListenerFunc {
+	NewChatListener,
 	NewEchoListener,
+	NewGameEndListener,
 	NewGameListener,
+	NewLeftListener,
 	NewUserJoinedListener,
 }

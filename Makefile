@@ -42,7 +42,9 @@ build:
 dev:
 	trap 'kill -TERM $$BACKEND_PID $$FRONTEND_PID 2>/dev/null; wait; exit 0' INT TERM EXIT; \
 	cd backend && air & BACKEND_PID=$$!; \
-	cd frontend && bun run build && bun run dev & FRONTEND_PID=$$!; \
+	watchexec -w frontend \
+		--ignore frontend/public/out --ignore frontend/node_modules \
+		"cd frontend && bun run build"
 	wait
 
 set-domain:

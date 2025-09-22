@@ -31,14 +31,17 @@ async function handleFormSubmit(event: Event) {
   };
 
   try {
-  const response: RemoteGameCreationResponse = await client.post(
-    '/create/remote',
-    form
-  );
+    const response: RemoteGameCreationResponse = await client.post(
+      '/create/remote',
+      form,
+      {
+        redirect: "manual",
+      }
+    );
 
-  navigateToPage(`/room/${response.roomID}`);
+    navigateToPage(`/room/${response.roomID}`);
   } catch (err: any) {
-    toast.show(Level.Error,Importance.Major,{
+    toast.show(Level.Error, Importance.Major, {
       message: err.message
     })
   }

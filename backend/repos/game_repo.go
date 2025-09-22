@@ -52,7 +52,7 @@ func (r *gameRepo) Create(ctx context.Context, g *models.Game) error {
 }
 
 func (r *gameRepo) GetPublicActive(ctx context.Context, searchTerm string) ([]*models.Game, error) {
-	key := "public_active"
+	key := "public_active_waiting"
 	if searchTerm != "" {
 		key += ":search:" + searchTerm
 	}
@@ -65,24 +65,30 @@ func (r *gameRepo) GetPublicActive(ctx context.Context, searchTerm string) ([]*m
 	}
 
 	var games []*models.Game
-	sb := `SELECT * FROM games WHERE private = false AND active = true`
+	sb := `
+		SELECT DISTINCT g.*
+		FROM games g
+		JOIN rounds r ON r.game_id = g.id
+		WHERE g.private = false
+		  AND g.active = true
+		  AND r.status = 'waiting'
+	`
 	if searchTerm != "" {
-		sb += ` AND (name ILIKE '%' || $1 || '%' OR room_id ILIKE '%' || $1 || '%')`
+		sb += ` AND (g.name ILIKE '%' || $1 || '%' OR g.room_id ILIKE '%' || $1 || '%')`
 	}
-	sb += ` ORDER BY created_at DESC`
+	sb += ` ORDER BY g.created_at DESC`
 
 	if searchTerm != "" {
 		if err := sqlx.SelectContext(ctx, r.db, &games, sb, searchTerm); err != nil {
-			return nil, fmt.Errorf("get public active games: %w", err)
+			return nil, fmt.Errorf("get public active waiting games: %w", err)
 		}
 	} else {
 		if err := sqlx.SelectContext(ctx, r.db, &games, sb); err != nil {
-			return nil, fmt.Errorf("get public active games: %w", err)
+			return nil, fmt.Errorf("get public active waiting games: %w", err)
 		}
 	}
 
 	data, _ := json.Marshal(games)
-	//nolint
 	_ = cache.Set(ctx, key, string(data), 5*time.Minute)
 	return games, nil
 }

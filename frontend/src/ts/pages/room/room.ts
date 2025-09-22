@@ -1,5 +1,14 @@
+import { client } from '@alspy/api';
 import { poker } from '@alspy/poke';
 import { EventName } from '@alspy/poke/types';
+import { log, navigateToPage } from '@alspy/spa';
+
+function getCookie(name: string) {
+  return document.cookie
+    .split("; ")
+    .find(row => row.startsWith(name + "="))
+    ?.split("=")[1];
+}
 
 export const pageRoomInit = () => {
   const roomID = window.location.pathname.split('/').pop();
@@ -26,6 +35,50 @@ export const pageRoomInit = () => {
     <span class="text-[var(--accent-green)]"><i class="fas fa-check-circle"></i></span>
   `;
     listBox.appendChild(div);
+  });
+
+  const box = document.getElementById('chat-messages') as HTMLDivElement;
+  if (!box) return;
+  channel.spy(EventName.Chatevent, (payload: any) => {
+    const { username, text } = payload.msg;
+
+    const empty = box.querySelector('.text-center');
+    if (empty) empty.remove();
+
+    const bubble = document.createElement('div');
+    bubble.innerHTML = `<strong>${username}:</strong> ${text}`;
+
+    box.appendChild(bubble);
+    box.scrollTop = box.scrollHeight;
+  });
+
+  const username = getCookie("username");
+  const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+  document.getElementById('send-chat-btn')?.addEventListener('click', () => {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    channel.poke(EventName.Chatevent, {
+      msg: {
+        text,
+        username
+      },
+    });
+    chatInput.value = '';
+  });
+
+
+  document.getElementById('leave-room')?.addEventListener('click', () => {
+    try {
+      client.post("/leave");
+      navigateToPage("/");
+      channel.close();
+    } catch {
+      log({
+        level: 'error',
+        msg: `Failed to Leave Room`,
+      });
+    }
+
   });
 };
 

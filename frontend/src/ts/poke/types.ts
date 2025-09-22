@@ -2,10 +2,13 @@
 
 export enum EventName {
     Baseevent = 0,
-    Echoevent = 1,
-    Gameevent = 2,
-    Userjoinedevent = 3,
-    EventNameCount = 4
+    Chatevent = 1,
+    Echoevent = 2,
+    Gameendevent = 3,
+    Gameevent = 4,
+    Leftevent = 5,
+    Userjoinedevent = 6,
+    EventNameCount = 7
 }
 
 export type EventData = { [key: string]: any };

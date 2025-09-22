@@ -55,8 +55,15 @@ export const client = {
     });
 
     if (!res.ok) {
-      const msg = await res.text();
-      throw new HttpError(msg || res.statusText, res.status, res);
+      let msg = await res.text();
+      let status = res.status;
+
+      if (status === 0) {
+        msg = "Ju duhet Te Logoheni";
+        status = 401;
+      }
+
+      throw new HttpError(msg || res.statusText, status, res);
     }
 
     if (opts.parseJson === false) {
@@ -64,8 +71,8 @@ export const client = {
       return res as unknown as T;
     }
 
-    // Default: parse as JSON (if not 204)
-    return res.status === 204 ? (undefined as T) : await res.json();
+    // Default: parse as JSON (if not 204 or 303)
+    return (res.status === 204 || res.status === 303) ? (undefined as T) : await res.json();
   },
 
   get<T = unknown>(url: Api_Route, opts?: FetchOptions) {

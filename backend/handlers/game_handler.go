@@ -14,6 +14,7 @@ import (
 	"spyal/pkg/utils/renderer"
 	"spyal/pkg/utils/room"
 	"spyal/repos"
+	"spyal/cache"
 
 	"go.uber.org/zap"
 )
@@ -192,7 +193,9 @@ func (gh *GameHandler) CreateRemoteGame(w http.ResponseWriter, r *http.Request) 
 	}
 
 	gh.Log.Info("stored game", zap.String("roomID", roomID))
-
+	if err = cache.Delete(ctx, "public_active_waiting"); err != nil {
+		gh.Log.Error("game creation cache error", zap.Error(err))
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(map[string]any{"roomID": roomID})

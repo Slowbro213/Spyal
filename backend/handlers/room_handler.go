@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	"net/http"
+	"spyal/cache"
 	"spyal/core"
 	"spyal/events"
 	"spyal/models"
@@ -136,6 +141,8 @@ func (rh *RoomHandler) Show(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 
+	isHost := game.HostID == userID
+
 	props := map[string]any{
 		"RoomID":      game.RoomID,
 		"RoomName":    game.Name,
@@ -144,7 +151,8 @@ func (rh *RoomHandler) Show(w http.ResponseWriter, r *http.Request) {
 		"GameStarted": round.Status != "waiting",
 		"Players":     users,
 		"Spies":       spies,
-		"IsHost":      true,
+		"UserID":      userID,
+		"IsHost":      isHost,
 		"CreatedAt":   game.CreatedAt,
 	}
 
@@ -157,4 +165,97 @@ func (rh *RoomHandler) Show(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rh.Log.Error("Error Rendering Room: ", zap.Error(err))
 	}
+}
+
+// nolint
+func (rh *RoomHandler) Leave(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	raw, ok := ctx.Value("id").(int64)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	userID := raw
+
+	type LeaveResult struct {
+		RoomID      string `db:"room_id"`
+		HostID      int64  `db:"host_id"`
+		RoundID     int64  `db:"round_id"`
+		HostDeleted bool   `db:"host_deleted"`
+	}
+
+	q := `
+	WITH target AS (
+		SELECT r.id AS round_id, r.game_id, g.room_id, g.host_id
+		FROM rounds r
+		JOIN games g ON g.id = r.game_id
+		JOIN game_participants gp ON gp.round_id = r.id
+		WHERE gp.user_id = $1
+		  AND r.status = 'waiting'
+		ORDER BY r.created_at DESC
+		LIMIT 1
+	),
+	deleted_participant AS (
+		DELETE FROM game_participants gp
+		WHERE gp.user_id = $1
+		  AND gp.round_id IN (SELECT round_id FROM target)
+		RETURNING round_id
+	),
+	deleted_round AS (
+		DELETE FROM rounds r
+		WHERE r.id IN (SELECT round_id FROM target WHERE host_id = $1)
+		RETURNING id
+	)
+	SELECT t.room_id, t.host_id, t.round_id, dr.id IS NOT NULL AS host_deleted
+	FROM target t
+	LEFT JOIN deleted_round dr ON dr.id = t.round_id;
+	`
+
+	db := rh.roundRepo.DB()
+	var result LeaveResult
+	err := sqlx.GetContext(ctx, db, &result, q, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "no waiting round found", http.StatusNotFound)
+			return
+		}
+		rh.Log.Error("leave db error", zap.Error(err))
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	rh.Log.Info("roomID: " + result.RoomID)
+
+	if err = cache.Delete(ctx, "players:"+result.RoomID); err != nil {
+		rh.Log.Error("leave cache error", zap.Error(err))
+	}
+
+	if err = cache.Delete(ctx, "public_active_waiting"); err != nil {
+		rh.Log.Error("leave cache error", zap.Error(err))
+	}
+
+	data := map[string]any{
+		"user_id":  userID,
+		"topic":    result.RoomID,
+	}
+
+	if result.HostDeleted {
+		if err = cache.Delete(ctx, "round:"+result.RoomID); err != nil {
+			rh.Log.Error("leave cache round error", zap.Error(err))
+		}
+		core.Dispatch(events.NewGameEndEvent(data))
+	} else {
+		core.Dispatch(events.NewLeftEvent(data))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"success":      true,
+		"room_id":      result.RoomID,
+		"host_left":    userID == result.HostID,
+		"host_deleted": result.HostDeleted,
+	})
+
 }

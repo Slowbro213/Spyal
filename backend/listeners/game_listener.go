@@ -27,10 +27,9 @@ func (el *GameListener) Handle(e contracts.Event) {
 		core.Logger.Warn("GameListener: failed to broadcast: " + err.Error())
 		return
 	}
-	jsonBytes, err := json.Marshal(data)
-	if err != nil {
+
+	if _, err := json.Marshal(data); err != nil {
 		core.Logger.Warn("GameListener: failed to marshal data to JSON: " + err.Error())
 		return
 	}
-	core.Logger.Info("New Data JSON: " + string(jsonBytes))
 }

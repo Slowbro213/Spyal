@@ -8,8 +8,11 @@ import (
 // constants
 const (
     Baseevent contracts.EventName = iota
+    Chatevent contracts.EventName = iota
     Echoevent contracts.EventName = iota
+    Gameendevent contracts.EventName = iota
     Gameevent contracts.EventName = iota
+    Leftevent contracts.EventName = iota
     Userjoinedevent contracts.EventName = iota
     EventNameCount
 )
@@ -19,10 +22,16 @@ func NewEvent(name contracts.EventName, data map[string]any) contracts.Event {
 	switch name {
 	case Baseevent:
 		return NewBaseEvent(data)
+	case Chatevent:
+		return NewChatEvent(data)
 	case Echoevent:
 		return NewEchoEvent(data)
+	case Gameendevent:
+		return NewGameEndEvent(data)
 	case Gameevent:
 		return NewGameEvent(data)
+	case Leftevent:
+		return NewLeftEvent(data)
 	case Userjoinedevent:
 		return NewUserJoinedEvent(data)
 	default:

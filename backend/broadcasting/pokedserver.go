@@ -1,27 +1,27 @@
 package broadcasting
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
-	"fmt"
-	"errors"
-	"encoding/json"
+	"strings"
+	"time"
+
 	"spyal/channels"
 	"spyal/contracts"
 	"spyal/core"
 	"spyal/events"
-	"strings"
-	"time"
-
-	"context"
 
 	"github.com/coder/websocket"
-
 	"go.uber.org/zap"
 )
 
 const (
-	timeOut = 10000000
+	timeOutSeconds = 10_000_000
 )
 
 func IsWebSocketRequest(r *http.Request) bool {
@@ -36,6 +36,7 @@ type PokedServer struct {
 
 
 
+//nolint
 func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
@@ -49,7 +50,6 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// defer CloseNow and check error
 	defer func() {
 		if err := c.CloseNow(); err != nil {
 			ps.Log.Warn("failed to close websocket", zap.Error(err))
@@ -70,31 +70,49 @@ func (ps *PokedServer) StartWSServer(w http.ResponseWriter, r *http.Request) {
 	chann := channels.Channels[channelName]
 
 	if chann == nil {
+		ps.Log.Warn("unknown channel", zap.String("channel", channelName))
 		return
 	}
 
-	if ok := chann.Join(conn,topic, r); !ok {
-		ps.Log.Warn("failed to join channel", zap.Error(err))
-	} 
+	if ok := chann.Join(conn, topic, r); !ok {
+		ps.Log.Warn("failed to join channel")
+	}
 
 	for {
-		ctx, cancel := context.WithTimeout(r.Context(), time.Second*timeOut)
-		err := poke(ctx, conn,topic)
+		ctx, cancel := context.WithTimeout(r.Context(), time.Second*time.Duration(timeOutSeconds))
+		err := poke(ctx, conn, topic)
 		cancel()
 
-		if websocket.CloseStatus(err) == websocket.StatusNormalClosure {
-			chann.Leave(conn,topic)
+		if err == nil {
+			continue
+		}
+
+		if websocket.CloseStatus(err) == websocket.StatusNormalClosure ||
+			websocket.CloseStatus(err) == websocket.StatusGoingAway ||
+			websocket.CloseStatus(err) == websocket.StatusNoStatusRcvd {
+			ps.Log.Info("websocket closed by client",
+				zap.String("remote", conn.RemoteAddr()),
+				zap.Int("close_code", int(websocket.CloseStatus(err))),
+			)
+			chann.Leave(conn, topic)
 			return
 		}
 
-		if err != nil {
-			ps.Log.Error("connection error with "+conn.RemoteAddr(), zap.Error(err))
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, io.EOF) ||
+			strings.Contains(err.Error(), "use of closed network connection") {
+			ps.Log.Info("websocket read ended (client disconnected / context done)",
+				zap.String("remote", conn.RemoteAddr()),
+				zap.Error(err),
+			)
+			chann.Leave(conn, topic)
 			return
 		}
+
+		ps.Log.Error("connection error with "+conn.RemoteAddr(), zap.Error(err))
+		chann.Leave(conn, topic)
+		return
 	}
 }
-
-
 
 func poke(ctx context.Context, conn contracts.WSConnection, topic string) error {
 	payload, err := conn.Read(ctx)
@@ -130,6 +148,5 @@ func poke(ctx context.Context, conn contracts.WSConnection, topic string) error 
 	}
 
 	core.Dispatch(event)
-	return err
+	return nil
 }
-

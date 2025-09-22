@@ -61,6 +61,7 @@ func Routes(myLogger *zap.Logger, metrics *metrics.Metrics, database *db.DB) htt
 	router.Post("/create/remote", middleware.AuthMiddleware(http.HandlerFunc(gh.CreateRemoteGame)).ServeHTTP)
 
 	router.Get("/room/", middleware.AuthMiddleware(http.HandlerFunc(rh.Show)).ServeHTTP)
+	router.Post("/leave", middleware.AuthMiddleware(http.HandlerFunc(rh.Leave)).ServeHTTP)
 
 	router.Get("/views/", http.StripPrefix("/views/", http.FileServer(http.Dir(viewsDir))).ServeHTTP)
 
